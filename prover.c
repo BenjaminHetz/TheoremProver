@@ -316,22 +316,18 @@ void HeuristicResolve()
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
 /*Unify two predicates*/
-unifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
+int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 {
     int param;
     int numAssign = 0;
-    if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2])
-    {
+    if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2]){
         return -1;
     }
-    if (sentlist[sent1].pred[p1]] ==  sentlist[sent2].pred[p2]])
-    {
+    if (sentlist[sent1].pred[p1] ==  sentlist[sent2].pred[p2]){
         return -1;
     }
-    Parameter param1[MAXPARAM];
-    Parameter param2[MAXPARAM];
-    param1 = sentlist[sent1].param[p1];
-    param2 = sentlist[sent2].param[p2];
+    Parameter *param1 = sentlist[sent1].param[p1];
+    Parameter *param2 = sentlist[sent2].param[p2];
     for (param = 0; param < sentlist[sent1].pred[p1]; param++){
         //Need to walk assignment list and make them
 
@@ -339,15 +335,15 @@ unifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
         int j;
         for (j = 0; j < numAssign; j++){
             if (!memcmp(&(param1[param]), theta[j].var, sizeof(Parameter))){
-                param2[param] = *(theta[i].val);
+                param2[param] = *(theta[j].val);
             }
         }
-        if (memcmp(param1[param], param2[param], sizeof(Parameter)){
+        if (memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
             if (variable(param1[param])){
                 theta[numAssign].var = &(param1[param]);
                 theta[numAssign++].var = &(param2[param]);
             }
-            else if (variable(param2[param]){
+            else if (variable(param2[param])){
                 //same assignments but in reverse
             }
             else{
@@ -360,14 +356,14 @@ unifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 }
 /* You must write this function */
 /* It is NOT the same as the Unify we did in class */
-int Unify(int sent1, int sent2)
+int Unify(int sent1, int sent2, Assignment *Theta)
 {
     int p1, p2;
     Assignment theta[MAXPARAM];
     Parameter param[MAXPRED][MAXPARAM];
     for (p1 = 0; p1 < sentlist[sent1].num_pred; p1++){
         for (p2 = 0; p2 < sentlist[sent2].num_pred; p2++){
-            int numAssign = unify(sent1, p1, sent2, p2, theta);
+            int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
             if (numAssign >= 0){
                 int neg[MAXPRED];
                 int pred[MAXPRED];
