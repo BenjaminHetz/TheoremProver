@@ -13,4 +13,5 @@ $(TARGET): $(OBJ)
 
 clean:	
 	rm *.o
+	rm $(TARGET)
 

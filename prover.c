@@ -337,8 +337,7 @@ unifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 
 
         int j;
-        for (j = 0; j < numAssign; j++)
-        {
+        for (j = 0; j < numAssign; j++){
             if (!memcmp(&(param1[param]), theta[j].var, sizeof(Parameter))){
                 param2[param] = *(theta[i].val);
             }
@@ -384,7 +383,7 @@ int Unify(int sent1, int sent2)
             }
 
               
-              AddSentence(neg, pred, param, snum, "");
+              //AddSentence(neg, pred, param, snum, "");
               //sentptr++ (don't do this if we use AddSentence)
         }
     }
