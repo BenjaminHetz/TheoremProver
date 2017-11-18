@@ -30,11 +30,16 @@ typedef struct {
 
 typedef struct {
     char comment[MAXSTRLEN]; /* comment from input file */
-    int refutePart;          /* set to true if this sentence came from the negated part of the knowledge base */
-    int pred[MAXPRED];         /* List of predicates in sentence (indexes into Predicate array) */
-    int neg[MAXPRED];         /* Added by T. Andersen. neg[i] set to 1 if predicate indexed by pred[i] is negated */
-    int num_pred;             /* Added by T. Andersen.  Stores the number of predicates for this sentence */
-    Parameter param[MAXPRED][MAXPARAM];   /* List of parameters for each predicate */
+    int refutePart;          /* set to true if this sentence came from the
+                                negated part of the knowledge base */
+    int pred[MAXPRED];       /* List of predicates in sentence (indexes into
+                                Predicate array) */
+    int neg[MAXPRED];        /* Added by T. Andersen. neg[i] set to 1 if 
+                                predicate indexed by pred[i] is negated */
+    int num_pred;            /* Added by T. Andersen.  Stores the number
+                                of predicates for this sentence */
+    Parameter param[MAXPRED][MAXPARAM];   /* List of parameters for each
+                                             predicate */
 } Sentence;
 
 typedef struct {
