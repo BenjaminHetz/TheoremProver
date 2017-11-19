@@ -30,16 +30,11 @@ typedef struct {
 
 typedef struct {
     char comment[MAXSTRLEN]; /* comment from input file */
-    int refutePart;          /* set to true if this sentence came from the
-                                negated part of the knowledge base */
-    int pred[MAXPRED];       /* List of predicates in sentence (indexes into
-                                Predicate array) */
-    int neg[MAXPRED];        /* Added by T. Andersen. neg[i] set to 1 if 
-                                predicate indexed by pred[i] is negated */
-    int num_pred;            /* Added by T. Andersen.  Stores the number
-                                of predicates for this sentence */
-    Parameter param[MAXPRED][MAXPARAM];   /* List of parameters for each
-                                             predicate */
+    int refutePart;          /* set to true if this sentence came from the negated part of the knowledge base */
+    int pred[MAXPRED];         /* List of predicates in sentence (indexes into Predicate array) */
+    int neg[MAXPRED];         /* Added by T. Andersen. neg[i] set to 1 if predicate indexed by pred[i] is negated */
+    int num_pred;             /* Added by T. Andersen.  Stores the number of predicates for this sentence */
+    Parameter param[MAXPRED][MAXPARAM];   /* List of parameters for each predicate */
 } Sentence;
 
 typedef struct {
@@ -298,12 +293,41 @@ void AddKBSentence(void)
 /* You must write this function */
 void RandomResolve()
 {
+    struct timeval start, end;
     rTime=0.0;
     rSteps=0;
-    printf("\nRun your RandomResolve routine here\n");
-
-    rTime=100.0; /* change these two lines to reflect the actual time, #steps */
-    rSteps=20;
+    
+    //Time at start of RandomResolve approach.
+    gettimeofday(&start, NULL);
+    int sent1 = 0;
+    while(1){
+	if(sentlist[sent1].num_pred == 0)
+	    break;
+	sent1++;
+    }
+    
+    // Choose random sentences to compare.
+    int random[sent1 - 1];
+    int i;
+    for(i = 0; i<sent1; i++){
+	random[i] = i;
+    }
+    int r;
+    for(i=0; i<sent1; i++){
+	r = rand() % sent1;
+	int temp = random[i];
+	random[i] = random[r];
+	random[r] = temp;
+    }
+    
+    //TODO Send in loop. What if we need to do the same sentence 2+ times?
+    //rSteps=Unify(sent1, sent2, Theta);
+    rSteps = 20;
+    gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
+    int seconds = (end.tv_sec - start.tv_sec);
+    double useconds = (end.tv_usec + start.tv_usec)/(1000000000.0);
+    rTime= seconds + useconds;
+    
 
     printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
 }
@@ -311,12 +335,27 @@ void RandomResolve()
 /* You must write this function */
 void HeuristicResolve()
 {
+    struct timeval start, end;
     hTime=0.0;
     hSteps=0;
-    printf("\nRun your HeuristicResolve routine here\n");
-
-    hTime=50.0; /* change these two lines to reflect the actual time, #steps */
-    hSteps=10;
+    
+    //Time at start of RandomResolve approach.
+    gettimeofday(&start, NULL);
+    int sent1 = 0;
+    while(1){
+	if(sentlist[sent1].num_pred == 0)
+	    break;
+	sent1++;
+    }
+    
+    //TODO Order and send in loop
+    //hSteps=Unify(sent1, sent2, Theta);
+    hSteps = 20;
+    gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
+    int seconds = (end.tv_sec - start.tv_sec);
+    double useconds = (end.tv_usec + start.tv_usec)/(1000000000.0);
+    hTime=seconds + useconds;
+    
 
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
