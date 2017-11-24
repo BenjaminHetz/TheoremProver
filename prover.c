@@ -21,8 +21,6 @@ typedef struct {
     int numparam;   /* Number of parameters the predicate requires */
 } Predicate;
 
-Predicate predlist[MAXPRED];
-
 typedef struct {
     char con[16];   /* Storage for when the parameter is a constant */
     int var;   /* Storage for when the parameter is a variable */
@@ -44,6 +42,7 @@ typedef struct {
 
 int sentptr;
 Sentence sentlist[MAXSENT];
+Predicate predlist[MAXPRED];
 int nextvar;
 
 /* Returns true if the parameter is a constant */
@@ -294,11 +293,13 @@ void AddKBSentence(void)
 void RandomResolve()
 {
     struct timeval start, end;
+    Assignment Theta[MAXPRED];
     rTime=0.0;
     rSteps=0;
     
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
+    //Get sentence to resolve.
     int sent1 = 0;
     while(1){
 	if(sentlist[sent1].num_pred == 0)
@@ -310,7 +311,7 @@ void RandomResolve()
     int random[sent1 - 1];
     int i;
     for(i = 0; i<sent1; i++){
-	random[i] = i;
+        random[i] = i;
     }
     int r;
     for(i=0; i<sent1; i++){
@@ -320,27 +321,75 @@ void RandomResolve()
 	random[r] = temp;
     }
     
-    //TODO Send in loop. What if we need to do the same sentence 2+ times?
-    //rSteps=Unify(sent1, sent2, Theta);
-    rSteps = 20;
+    //TODO What if we need to do the same sentence 2+ times?
+    for(i=0; i<sent1; i++){
+        rSteps += Unify(sent1, sentlist[random[i]], Theta);
+    }
+    
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
     int seconds = (end.tv_sec - start.tv_sec);
-    double useconds = (end.tv_usec + start.tv_usec)/(1000000000.0);
+    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     rTime= seconds + useconds;
     
-
+    //Print result.
     printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
+}
+
+/* Order sentences by number of preds in common that are also negated.*/
+int []OrderByPreds(int rSent, int rPreds[])
+{
+    int ordered[MAXPREDS];
+    int matchlist[MAXPREDS];
+    int s; //Current sentence.
+    int p; //Current predicate.
+    int r; //Current resolve predicate.
+    int m; //Current match.
+    for(s=0; s<rSent; s++){
+        int match = 0;
+        int preds[] = sentlist[s].pred;
+        for(p=0; p<sentlist[s].num_pred; p++){
+            for(r=0; r<sentlist[rSent].num_pred; r++){
+                if(sentlist[s].pred[p] == sentlist[rSent].pred[r]){
+                    if(sentlist[s].neg[p] != sentlist[rSent].neg[r]){
+                        match++;
+                    }
+                    break; //Continue on to next pred.
+                }
+            }
+        }
+        int pos=-1; //Position to insert.
+        for(m=0; m<(s+1); m++){
+            if(m==s){
+                ordered[s] = s;
+                matchlist[s] = match;
+            } else if(match > matchlist[m]) {
+                pos = m;
+                break;
+            }
+        }
+        if(pos != -1){
+            for(m=s; m>pos; m--){
+                ordered[m] = ordered[m-1];
+                matchlist[m] = matchlist[m-1];
+            }
+            ordered[pos] = s;
+            matchlist[pos] = match;
+        }
+    }
+    return ordered;
 }
 
 /* You must write this function */
 void HeuristicResolve()
 {
     struct timeval start, end;
+    Assignment Theta[MAXPRED];
     hTime=0.0;
     hSteps=0;
     
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
+    //Get sentence to resolve.
     int sent1 = 0;
     while(1){
 	if(sentlist[sent1].num_pred == 0)
@@ -348,15 +397,19 @@ void HeuristicResolve()
 	sent1++;
     }
     
-    //TODO Order and send in loop
-    //hSteps=Unify(sent1, sent2, Theta);
-    hSteps = 20;
+    //Order by some heuristic.
+    int heuristic[] = orderByPreds(sent1, sentlist[sent1].pred);
+    //Send in loop.
+    for(i=0; i<sent1; i++){
+        hSteps += Unify(sent1, heuristic[i], Theta);
+    }
+    //Get end time.
     gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
     int seconds = (end.tv_sec - start.tv_sec);
-    double useconds = (end.tv_usec + start.tv_usec)/(1000000000.0);
+    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     hTime=seconds + useconds;
     
-
+    //Print results.
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
 /*Unify two predicates*/
