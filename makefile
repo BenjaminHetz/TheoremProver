@@ -1,4 +1,4 @@
-CC = cc
+CC = gcc -g
 TARGET = prover
 OBJ =  prover.o
 LIBS = 
