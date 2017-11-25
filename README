@@ -12,3 +12,27 @@ If you find that the source code we provide is too difficult to follow you may w
 scratch with your own representation and so forth. 
 
 Refer to the web page for more info
+
+
+Heuristic Resolve Notes:
+ The simplist idea we could come up with was to order the sentences by the number of predicates that match a 
+ predicate in the sentence to resolve. This was also only counted if one was negated. Orginally, all this was 
+ done in arrays since the entire project had been done with arrays thus far. However, C doesn't allow an array 
+ to be returned, so this is our only use of int pointers.
+ 
+ Right now we have one function for the hueristic ordering. First is a loop for every sentence to order. Within 
+ that loop is a loop for each predicate in the current sentence. Within that is another loop for each predicate 
+ in the sentence to resolve. If the sentences match, then we check if one of them are negated. If so, then we 
+ increment our match counter. We then break whether or not the sentences were negated because there can't be both 
+ a negated and non-negated predicate in the same sentence because of the form they are given to us in. Once all 
+ the predicates for the current sentence are checked, the ordered list is then updated. To do this, first a loop 
+ from 0 to the current sentence is run. Within this loop, we check if we are at the "end" of the current list.
+ I.E. on the first sentence, the first position checked is 0. Since no items have been added to the list, this 
+ is the end of the list so it is added at 0. This is done by comparing the current loop value (m) and the current 
+ sentence value (s). If they are not equal, then we check if the number of matches on the current sentence is 
+ greater than the number of matches from the last sentence (number of matches are stored in an array kept in the 
+ same order as the ordered array, thus allowing position i of both ordered and matchlist to corrspond to the same 
+ sentence. If this is true, then the position to add is set and we break from the loop. Then, if a position is 
+ set, another loop is done from 1 past the last position of the loop to the position to add, setting each value 
+ to the value before it. Finally, we set the value at the desired position to the new value. This ends the loop 
+ on the sentences. Once it has ran through each sentence (loop finishes), the ordered int pointer is returned.
