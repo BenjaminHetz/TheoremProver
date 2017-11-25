@@ -11,6 +11,8 @@
 #define MAXSUB 1000
 #define MAXSTRLEN 200
 
+int *OrderByPreds(int rSent, int rPreds[]);
+
 double rTime, hTime;
 int rSteps, hSteps;
 
@@ -336,17 +338,17 @@ void RandomResolve()
 }
 
 /* Order sentences by number of preds in common that are also negated.*/
-int []OrderByPreds(int rSent, int rPreds[])
+int *OrderByPreds(int rSent, int rPreds[])
 {
-    int ordered[MAXPREDS];
-    int matchlist[MAXPREDS];
+    int *ordered = malloc(sizeof(int) * MAXPRED);
+    int matchlist[MAXPRED];
     int s; //Current sentence.
     int p; //Current predicate.
     int r; //Current resolve predicate.
     int m; //Current match.
     for(s=0; s<rSent; s++){
         int match = 0;
-        int preds[] = sentlist[s].pred;
+        int *preds = sentlist[s].pred;
         for(p=0; p<sentlist[s].num_pred; p++){
             for(r=0; r<sentlist[rSent].num_pred; r++){
                 if(sentlist[s].pred[p] == sentlist[rSent].pred[r]){
@@ -386,9 +388,9 @@ void HeuristicResolve()
     Assignment Theta[MAXPRED];
     hTime=0.0;
     hSteps=0;
-    
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
+    
     //Get sentence to resolve.
     int sent1 = 0;
     while(1){
@@ -396,13 +398,15 @@ void HeuristicResolve()
 	    break;
 	sent1++;
     }
-    
     //Order by some heuristic.
-    int heuristic[] = orderByPreds(sent1, sentlist[sent1].pred);
+    int *heuristic = OrderByPreds(sent1, sentlist[sent1].pred);
     //Send in loop.
+    int i;
     for(i=0; i<sent1; i++){
         hSteps += Unify(sent1, heuristic[i], Theta);
     }
+    free(heuristic);
+    
     //Get end time.
     gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
     int seconds = (end.tv_sec - start.tv_sec);
