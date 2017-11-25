@@ -442,6 +442,8 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
             }
             else if (variable(param2[param])){
                 //same assignments but in reverse
+                theta[numAssign].var = &(param2[param]);
+                theta[numAssign++].var = &(param1[param]);
             }
             else{
                 return -1;
