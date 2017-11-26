@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include <time.h>
 
 #define MAXPRED 50
@@ -290,7 +291,86 @@ void AddKBSentence(void)
     fgets(sent,255,stdin);
     StringToSentence(sent);
 }
+/*Unify two predicates*/
+int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
+{
+    int param;
+    int numAssign = 0;
+    //make sure predicates are not in the same "state" of negation
+    if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2]){
+        return -1;
+    }
+    //make sure the predicates aren't the same
+    if (sentlist[sent1].pred[p1] ==  sentlist[sent2].pred[p2]){
+        return -1;
+    }
+    //Store the list of parameters for each predicate
+    Parameter *param1 = sentlist[sent1].param[p1];
+    Parameter *param2 = sentlist[sent2].param[p2];
+    
+    //TODO: I'm pretty sure the bounds for this loop are wrong
+    for (param = 0; param < sentlist[sent1].pred[p1]; param++){
+        //TODO: Need to walk assignment list and make them
 
+
+        int j;
+        //Find whether theta has a var val pair for the var at index
+        //param, put the val from theta in if it does
+        for (j = 0; j < numAssign; j++){
+            if (!memcmp(&(param1[param]), theta[j].var, sizeof(Parameter))){
+                param2[param] = *(theta[j].val);
+            }
+        }
+        //see if parameters are the same
+        if (memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
+        //if first is a variable then we can substitute the val
+            if (variable(param1[param]) && !variable(param2[param])){
+                theta[numAssign].var = &(param1[param]);
+                theta[numAssign++].val = &(param2[param]);
+            }
+            else if (variable(param2[param]) && !variable(param1[param])){
+                theta[numAssign].var = &(param2[param]);
+                theta[numAssign++].val = &(param1[param]);
+            }
+            else{
+                return -1;
+            }
+          
+        }
+    }
+
+}
+
+/* You must write this function */
+/* It is NOT the same as the Unify we did in class */
+int Unify(int sent1, int sent2, Assignment *Theta)
+{
+    int p1, p2;
+    Assignment theta[MAXPARAM];
+    Parameter param[MAXPRED][MAXPARAM];
+    for (p1 = 0; p1 < sentlist[sent1].num_pred; p1++){
+        for (p2 = 0; p2 < sentlist[sent2].num_pred; p2++){
+            int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
+            if (numAssign >= 0){
+                int neg[MAXPRED];
+                int pred[MAXPRED];
+                char param[MAXPRED][MAXPARAM][16];
+                int snum;
+
+              //fill up everything from these two sentences except
+              //the two matching predicates
+
+              //Walk assignment list and perform assignments on all the
+              //predicate parameters in that param[MAXPRED][MAXPARAM][16]
+              //TODO look at standardize apart
+            }
+
+              
+              //AddSentence(neg, pred, param, snum, "");
+              //sentptr++ (don't do this if we use AddSentence)
+        }
+    }
+}
 /* You must write this function */
 void RandomResolve()
 {
@@ -325,7 +405,7 @@ void RandomResolve()
     
     //TODO What if we need to do the same sentence 2+ times?
     for(i=0; i<sent1; i++){
-        rSteps += Unify(sent1, sentlist[random[i]], Theta);
+        rSteps += Unify(sent1, random[i], Theta);
     }
     
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
@@ -416,77 +496,7 @@ void HeuristicResolve()
     //Print results.
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
-/*Unify two predicates*/
-int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
-{
-    int param;
-    int numAssign = 0;
-    if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2]){
-        return -1;
-    }
-    if (sentlist[sent1].pred[p1] ==  sentlist[sent2].pred[p2]){
-        return -1;
-    }
-    Parameter *param1 = sentlist[sent1].param[p1];
-    Parameter *param2 = sentlist[sent2].param[p2];
-    for (param = 0; param < sentlist[sent1].pred[p1]; param++){
-        //Need to walk assignment list and make them
 
-
-        int j;
-        for (j = 0; j < numAssign; j++){
-            if (!memcmp(&(param1[param]), theta[j].var, sizeof(Parameter))){
-                param2[param] = *(theta[j].val);
-            }
-        }
-        if (memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
-            if (variable(param1[param])){
-                theta[numAssign].var = &(param1[param]);
-                theta[numAssign++].var = &(param2[param]);
-            }
-            else if (variable(param2[param])){
-                //same assignments but in reverse
-                theta[numAssign].var = &(param2[param]);
-                theta[numAssign++].var = &(param1[param]);
-            }
-            else{
-                return -1;
-            }
-          
-        }
-    }
-
-}
-/* You must write this function */
-/* It is NOT the same as the Unify we did in class */
-int Unify(int sent1, int sent2, Assignment *Theta)
-{
-    int p1, p2;
-    Assignment theta[MAXPARAM];
-    Parameter param[MAXPRED][MAXPARAM];
-    for (p1 = 0; p1 < sentlist[sent1].num_pred; p1++){
-        for (p2 = 0; p2 < sentlist[sent2].num_pred; p2++){
-            int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
-            if (numAssign >= 0){
-                int neg[MAXPRED];
-                int pred[MAXPRED];
-                char param[MAXPRED][MAXPARAM][16];
-                int snum;
-
-              //fill up everything from these two sentences except
-              //the two matching predicates
-
-              //Walk assignment list and perform assignments on all the
-              //predicate parameters in that param[MAXPRED][MAXPARAM][16]
-              //TODO look at standardize apart
-            }
-
-              
-              //AddSentence(neg, pred, param, snum, "");
-              //sentptr++ (don't do this if we use AddSentence)
-        }
-    }
-}
 /* You must write this function */
 void Resolve(void)
 {

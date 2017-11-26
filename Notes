@@ -1,0 +1,22 @@
+A Predicate has:
+  a name
+  it's number of parameters
+
+A Parameter has:
+  a name (if constant)
+  an int value (if variable)
+
+A Sentence has:
+  A comment
+  A "boolean" value for if this is the refuted part of KB
+  An array of all predicates (used to index into global predicate array)
+  An array of boolean values, set to 1 if the predicate at the same index is
+     negated
+  An integer value for the number of predicates in a given sentence
+  A matrix of values, each row corresponds to the predicate at that index
+     each column corresponds to the parameters for that predicate
+
+An Assignment has:
+  A pointer to the parameter that is the variable
+  A pointer to the parameter that is the value to be substituted for said var
+  
