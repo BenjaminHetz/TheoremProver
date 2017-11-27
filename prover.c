@@ -308,16 +308,14 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
     Parameter *param1 = sentlist[sent1].param[p1];
     Parameter *param2 = sentlist[sent2].param[p2];
     
-    //TODO: I'm pretty sure the bounds for this loop are wrong
-    for (param = 0; param < sentlist[sent1].pred[p1]; param++){
-        //TODO: Need to walk assignment list and make them
-
-
+    Predicate numparampred1 = sentlist[sent1].param[p1].numparam;
+    
+    for (param = 0; param < numparampred1; param++){
         int j;
         //Find whether theta has a var val pair for the var at index
         //param, put the val from theta in if it does
         for (j = 0; j < numAssign; j++){
-            if (!memcmp(&(param1[param]), theta[j].var, sizeof(Parameter))){
+            if (!memcmp(&(param1[param]), &(theta[j].var), sizeof(Parameter))){
                 param2[param] = *(theta[j].val);
             }
         }
