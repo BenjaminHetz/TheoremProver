@@ -19,4 +19,94 @@ A Sentence has:
 An Assignment has:
   A pointer to the parameter that is the variable
   A pointer to the parameter that is the value to be substituted for said var
-  
+
+
+Give pairs of sentences a priority and add to a queue
+The higher the priority, the earlier in the queue it appears
+
+1                                    1, 4
+2                                    2, 4
+3                                    3, 4
+
+4 (neg)
+
+5                                    5, 1
+6                                    5, 2
+7                                    5, 3
+                                     5, 4
+
+For a random resolve, we just give each pair of sentences a random value for
+priority, This way the underlying logic remains the same, but the randomization
+comes from the priorities themselves.
+
+Priority queues are the shit
+
+
+
+***********EXAMPLE CODE***********
+
+A(Tim)
+!A(x) !B(x) !B(y)
+
+B(c)
+
+x = Tim
+
+!B(Tim) !B(d)
+
+
+tryResolution(sent1 sent2)
+
+walk through predicates in each sentence, determine if they can be unified
+
+
+take the assignments from theta, make them for the resolved sentence, add it to
+     the database
+AddSentenceFromResolution(sent1, p1, sent2, p2, theta, numAssign)
+       memset(&(sentlist[sentptr]), 0, sizeof(Sentence));
+       AddPredicatesWithSkip(sentptr, s1, p1);
+       AddPredicatesWithSkip(sentptr, s2, p2);
+       performSubs(sentptr, theta, numAssign);
+
+
+AddPredicates(int destSent, int srcSent, int FROM, int TO)
+
+
+PerformSubstitiutions(int s, theta, numAssign)
+
+walk through predicates in sentence s,
+     walk through each parameter
+          walk through assignments
+               if the variable of the parameter of that sentence matches the
+               variable in assignment, set the varialbe to be the value
+               from theta
+
+
+StandardizeApart(s)
+
+go through all predicates
+   go through all parameters
+      check the var for whether
+
+
+******END CODE EXAMPLE******
+
+With what Tim has, we need to test something like
+
+a | x
+x | y
+
+two fold replacement dealy
+
+To test, we need a predicate with two variables
+
+A(a, b)
+!A(y, y)
+
+here we get
+     y | a || a | y
+and then we also
+     y | b || b | y
+
+
+       
