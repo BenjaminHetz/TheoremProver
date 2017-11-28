@@ -1,16 +1,19 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 /**
  * TODO What does this shit do.
  * 
  * @author Tyler Egan, Ben Hetz
  */
-public class prover {
-
-	public static void main(String[] args) {
-		
+public class prover
+{
+    private static ArrayList<sentence> knowledgeBase;
+	public static void main(String[] args)
+	{
+		knowledgeBase = new ArrayList<>();
 		//Argument Handling
 		if(args.length > 2) {
 			System.out.println("Usage: prover <filename>");
@@ -19,20 +22,37 @@ public class prover {
 			manualTesting();
 			System.exit(0);
 		}
-		try {
-			File filename = new File(args[0]);
-			Scanner scan = new Scanner(filename);
-			
-		} catch (FileNotFoundException e){
-			System.out.println("File " + args[0] + " could not be found.");
-			System.err.print(e.getStackTrace());
-			System.exit(1);
-		} catch (Exception e){
-			System.err.print(e.getStackTrace());
-			System.exit(1);
-		}
+		readKB(args[0]);
 	}
 
+    /**
+     * TODO Implement
+     */
+	private static void readKB(String fileName)
+    {
+        try {
+            File kbFile = new File(fileName);
+            Scanner scan = new Scanner(kbFile);
+            while(scan.hasNext()){
+
+            }
+        } catch (FileNotFoundException e){
+            System.out.println("File " + fileName + " could not be found.");
+            System.err.print(e.getStackTrace());
+            System.exit(1);
+        } catch (Exception e){
+            System.err.print(e.getStackTrace());
+            System.exit(1);
+        }
+    }
+
+    /**
+     * TODO Implement
+     */
+    private static void showKB()
+    {
+
+    }
 	/**
 	 * TODO Bleh.
 	 */
