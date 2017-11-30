@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include "prover.h"
 
 #define MAXPRED 50
 #define MAXPARAM 10
