@@ -534,37 +534,6 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 
 }
 
-/* You must write this function */
-/* It is NOT the same as the Unify we did in class */
-int Unify(int sent1, int sent2, Assignment *Theta)
-{
-    int p1, p2;
-    Assignment theta[MAXPARAM];
-    Parameter param[MAXPRED][MAXPARAM];
-    for (p1 = 0; p1 < sentlist[sent1].num_pred; p1++){
-        for (p2 = 0; p2 < sentlist[sent2].num_pred; p2++){
-            int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
-            if (numAssign >= 0){
-                int neg[MAXPRED];
-                int pred[MAXPRED];
-                char param[MAXPRED][MAXPARAM][16];
-                int snum;
-
-              //fill up everything from these two sentences except
-              //the two matching predicates
-
-              //Walk assignment list and perform assignments on all the
-              //predicate parameters in that param[MAXPRED][MAXPARAM][16]
-              //TODO look at standardize apart
-            }
-
-              
-              //AddSentence(neg, pred, param, snum, "");
-              //sentptr++ (don't do this if we use AddSentence)
-        }
-    }
-}
-
 /* Returns true if the parameter is a variable */
 int variable(Parameter param) {
     if(param.var > 0 && param.con[0] == '\0') return 1; else return 0;
