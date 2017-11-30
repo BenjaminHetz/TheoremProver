@@ -12,8 +12,6 @@
 #define MAXSUB 1000
 #define MAXSTRLEN 200
 
-int *OrderByPreds(int rSent, int rPreds[]);
-
 double rTime, hTime;
 int rSteps, hSteps;
 
@@ -48,27 +46,18 @@ Sentence sentlist[MAXSENT];
 Predicate predlist[MAXPRED];
 int nextvar;
 
-/* Returns true if the parameter is a constant */
-int constant(Parameter param) {
-    if(param.var <= 0 && param.con[0] != '\0') return 1; else return 0;
-}
 
-/* Returns true if the parameter is a variable */
-int variable(Parameter param) {
-    if(param.var > 0 && param.con[0] == '\0') return 1; else return 0;
-}
+/////***** Functions *****/////
 
-/* Returns true if the parameter is empty */
-int empty(Parameter *param) {
-    if(param->var <= 0 && param->con[0] == '\0') return 1; else return 0;
-}
 
-/* Set the KB to empty */
-void InitializeKB(void) {
-    sentptr = 0;
-    memset(sentlist,0,MAXSENT*sizeof(Sentence));
-    memset(predlist,0,MAXPRED*sizeof(Predicate));
-    nextvar = 1;
+/* Allow user to enter a sentence to be added to KB */
+void AddKBSentence(void)
+{
+    char sent[255];
+
+    printf("\nEnter sentence: ");
+    fgets(sent,255,stdin);
+    StringToSentence(sent);
 }
 
 /* Add a predicate to the predicate list */
@@ -85,6 +74,297 @@ int AddPredicate(char *name, int numparam) {
     }
     return i;
 }
+
+/* TODO */
+void addPredicateWithSkip(int destSent, int srcSent, int skipPred)
+{
+  
+}
+
+/* Add a sentence to the KB */
+void AddSentence(int neg[MAXPRED],
+                 int pred[MAXPRED],
+                 char param[MAXPRED][MAXPARAM][16],
+                 int snum, char *leftover)
+{
+    int i;
+
+    Standardize(param,sentlist[sentptr].param,pred,snum);
+    for(i=0; i<snum; i++) {
+        sentlist[sentptr].pred[i] = pred[i];
+        sentlist[sentptr].neg[i] = neg[i];
+    }
+    if(*leftover == '.')
+    {
+        leftover++;
+        leftover[strlen(leftover)-1]=0; /* get rid of new line char */
+        strcpy(sentlist[sentptr].comment,leftover);
+    }
+    sentlist[sentptr].refutePart = RefuteFlag;
+    sentlist[sentptr].num_pred = snum;
+    sentptr++;
+}
+
+/* TODO */
+void AddSentenceFromResolution(int s1, int s2, int p1, int p2, Assignment *theta, int numAssign)
+{
+  
+}
+
+/* Returns true if the parameter is a constant */
+int constant(Parameter param) {
+    if(param.var <= 0 && param.con[0] != '\0') return 1; else return 0;
+}
+
+/* Returns true if the parameter is empty */
+int empty(Parameter *param) {
+    if(param->var <= 0 && param->con[0] == '\0') return 1; else return 0;
+}
+
+/* Set the KB to empty */
+void InitializeKB(void) {
+    sentptr = 0;
+    memset(sentlist,0,MAXSENT*sizeof(Sentence));
+    memset(predlist,0,MAXPRED*sizeof(Predicate));
+    nextvar = 1;
+}
+
+/* Load a KB from a text file */
+void LoadKB(void)
+{
+    char filename[255];
+
+    printf("\nEnter filename: ");
+    fgets(filename,255,stdin);
+    if(!ReadKB(filename))
+        InitializeKB();
+}
+
+/* Order sentences by number of preds in common that are also negated.*/
+int *OrderByPreds(int rSent, int rPreds[])
+{
+    int *ordered = malloc(sizeof(int) * MAXPRED);
+    int matchlist[MAXPRED];
+    int s; //Current sentence.
+    int p; //Current predicate.
+    int r; //Current resolve predicate.
+    int m; //Current match.
+    for(s=0; s<rSent; s++){
+        int match = 0;
+        int *preds = sentlist[s].pred;
+        for(p=0; p<sentlist[s].num_pred; p++){
+            for(r=0; r<sentlist[rSent].num_pred; r++){
+                if(sentlist[s].pred[p] == sentlist[rSent].pred[r]){
+                    if(sentlist[s].neg[p] != sentlist[rSent].neg[r]){
+                        match++;
+                    }
+                    break; //Continue on to next pred.
+                }
+            }
+        }
+        int pos=-1; //Position to insert.
+        for(m=0; m<(s+1); m++){
+            if(m==s){
+                ordered[s] = s;
+                matchlist[s] = match;
+            } else if(match > matchlist[m]) {
+                pos = m;
+                break;
+            }
+        }
+        if(pos != -1){
+            for(m=s; m>pos; m--){
+                ordered[m] = ordered[m-1];
+                matchlist[m] = matchlist[m-1];
+            }
+            ordered[pos] = s;
+            matchlist[pos] = match;
+        }
+    }
+    return ordered;
+}
+
+/* TODO */
+void performSubstitutions(int s, Assignment *theta, int numAssign)
+{
+  
+}
+
+/* TODO */
+void printAssignments(Assignment *theta, int numAssign)
+{
+  
+}
+
+/* TODO */
+void printParam(Parameter p)
+{
+  
+}
+
+/* User enters a the negation of their query.  This is added to KB, and then KB is resolved to find solution */
+void ProveQuery(void)
+{
+    char query[255];
+
+    printf("\nEnter negated query: ");
+    fgets(query,255,stdin);
+    StringToSentence(query);
+    Resolve();
+}
+
+/* Read in a KB from a text file */
+int ReadKB(char *filename)
+{
+    FILE *kbfile;
+    char line[255];
+
+    kbfile = fopen(filename,"rt");
+    if(!kbfile)
+    {
+        fprintf(stderr,"File %s not found.\n", filename);
+        return 0;
+    }
+    while(fgets(line,255,kbfile) != 0) {
+        if(line[0]=='\n') RefuteFlag=1;  /* the rest after the first blank line should be the negated conclusion */
+        else if(!StringToSentence(line))
+        {
+            fprintf(stderr,"Unable to parse line %s\n",line);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* TODO */
+void replaceVar(Parameter *start, Parameter *end, int var, int val)
+{
+  
+}
+
+/* You must write this function */
+void Resolve(void)
+{
+    RandomResolve();
+    HeuristicResolve();
+    printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",
+           (double)hSteps/(double)rSteps,
+           hTime/rTime);
+}
+
+/* You must write this function */
+void ResolveHeuristic()
+{
+    struct timeval start, end;
+    Assignment Theta[MAXPRED];
+    hTime=0.0;
+    hSteps=0;
+    //Time at start of RandomResolve approach.
+    gettimeofday(&start, NULL);
+    
+    //Get sentence to resolve.
+    int sent1 = 0;
+    while(1){
+	if(sentlist[sent1].num_pred == 0)
+	    break;
+	sent1++;
+    }
+    //Order by some heuristic.
+    int *heuristic = OrderByPreds(sent1, sentlist[sent1].pred);
+    //Send in loop.
+    int i;
+    for(i=0; i<sent1; i++){
+        hSteps += Unify(sent1, heuristic[i], Theta);
+    }
+    free(heuristic);
+    
+    //Get end time.
+    gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
+    int seconds = (end.tv_sec - start.tv_sec);
+    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
+    hTime=seconds + useconds;
+    
+    //Print results.
+    printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
+}
+
+/* You must write this function */
+void ResolveRandom()
+{
+    struct timeval start, end;
+    Assignment Theta[MAXPRED];
+    rTime=0.0;
+    rSteps=0;
+    
+    //Time at start of RandomResolve approach.
+    gettimeofday(&start, NULL);
+    //Get sentence to resolve.
+    int sent1 = 0;
+    while(1){
+	if(sentlist[sent1].num_pred == 0)
+	    break;
+	sent1++;
+    }
+    
+    // Choose random sentences to compare.
+    int random[sent1 - 1];
+    int i;
+    for(i = 0; i<sent1; i++){
+        random[i] = i;
+    }
+    int r;
+    for(i=0; i<sent1; i++){
+	r = rand() % sent1;
+	int temp = random[i];
+	random[i] = random[r];
+	random[r] = temp;
+    }
+    
+    //TODO What if we need to do the same sentence 2+ times?
+    for(i=0; i<sent1; i++){
+        rSteps += Unify(sent1, random[i], Theta);
+    }
+    
+    gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
+    int seconds = (end.tv_sec - start.tv_sec);
+    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
+    rTime= seconds + useconds;
+    
+    //Print result.
+    printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
+}
+
+/* Print the current KB to the screen */
+void ShowKB(void)
+{
+    int i,j,k,p;
+
+    printf("\nCurrent Knowledge Base\n");
+    for(i=0; i<sentptr; i++)
+    {
+        printf("%d: ",i);
+        for(j=0; j<sentlist[i].num_pred; j++){
+            if(sentlist[i].neg[j]) printf("!");
+            p = sentlist[i].pred[j];
+            printf("%s(",predlist[p].name);
+            for(k=0; k<predlist[p].numparam; k++){
+                if(constant(sentlist[i].param[j][k]))
+                    printf("%s",sentlist[i].param[j][k].con);
+                else
+                    printf("%c",'a'+(unsigned char) sentlist[i].param[j][k].var%26);
+                if(k<predlist[p].numparam-1)
+                    printf(",");
+                else
+                    printf(") ");
+            }
+        }
+        if(strlen(sentlist[i].comment)) printf("  //%s",sentlist[i].comment);
+        if(sentlist[i].refutePart) printf("  :from refuted part");
+        printf("\n");
+    }
+    printf("\n");
+}
+
 
 /* Standardize apart (Makes sure that each sentence has unique variables) */
 void Standardize(char param[MAXPRED][MAXPARAM][16],
@@ -113,28 +393,10 @@ void Standardize(char param[MAXPRED][MAXPARAM][16],
     }
 }
 
-/* Add a sentence to the KB */
-void AddSentence(int neg[MAXPRED],
-                 int pred[MAXPRED],
-                 char param[MAXPRED][MAXPARAM][16],
-                 int snum, char *leftover)
+/* TODO */
+void StandardizeApartVariables(int s)
 {
-    int i;
-
-    Standardize(param,sentlist[sentptr].param,pred,snum);
-    for(i=0; i<snum; i++) {
-        sentlist[sentptr].pred[i] = pred[i];
-        sentlist[sentptr].neg[i] = neg[i];
-    }
-    if(*leftover == '.')
-    {
-        leftover++;
-        leftover[strlen(leftover)-1]=0; /* get rid of new line char */
-        strcpy(sentlist[sentptr].comment,leftover);
-    }
-    sentlist[sentptr].refutePart = RefuteFlag;
-    sentlist[sentptr].num_pred = snum;
-    sentptr++;
+  
 }
 
 /* Convert text version of a sentence into internal representation */
@@ -217,80 +479,12 @@ int StringToSentence(char *line)
     return 1;
 }
 
-/* Read in a KB from a text file */
-int ReadKB(char *filename)
+/* TODO */
+int tryResolution(int sent1, int sent2)
 {
-    FILE *kbfile;
-    char line[255];
-
-    kbfile = fopen(filename,"rt");
-    if(!kbfile)
-    {
-        fprintf(stderr,"File %s not found.\n", filename);
-        return 0;
-    }
-    while(fgets(line,255,kbfile) != 0) {
-        if(line[0]=='\n') RefuteFlag=1;  /* the rest after the first blank line should be the negated conclusion */
-        else if(!StringToSentence(line))
-        {
-            fprintf(stderr,"Unable to parse line %s\n",line);
-            return 0;
-        }
-    }
-    return 1;
+  return 0;
 }
 
-/* Load a KB from a text file */
-void LoadKB(void)
-{
-    char filename[255];
-
-    printf("\nEnter filename: ");
-    fgets(filename,255,stdin);
-    if(!ReadKB(filename))
-        InitializeKB();
-}
-
-/* Print the current KB to the screen */
-void ShowKB(void)
-{
-    int i,j,k,p;
-
-    printf("\nCurrent Knowledge Base\n");
-    for(i=0; i<sentptr; i++)
-    {
-        printf("%d: ",i);
-        for(j=0; j<sentlist[i].num_pred; j++){
-            if(sentlist[i].neg[j]) printf("!");
-            p = sentlist[i].pred[j];
-            printf("%s(",predlist[p].name);
-            for(k=0; k<predlist[p].numparam; k++){
-                if(constant(sentlist[i].param[j][k]))
-                    printf("%s",sentlist[i].param[j][k].con);
-                else
-                    printf("%c",'a'+(unsigned char) sentlist[i].param[j][k].var%26);
-                if(k<predlist[p].numparam-1)
-                    printf(",");
-                else
-                    printf(") ");
-            }
-        }
-        if(strlen(sentlist[i].comment)) printf("  //%s",sentlist[i].comment);
-        if(sentlist[i].refutePart) printf("  :from refuted part");
-        printf("\n");
-    }
-    printf("\n");
-}
-
-/* Allow user to enter a sentence to be added to KB */
-void AddKBSentence(void)
-{
-    char sent[255];
-
-    printf("\nEnter sentence: ");
-    fgets(sent,255,stdin);
-    StringToSentence(sent);
-}
 /*Unify two predicates*/
 int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 {
@@ -369,151 +563,10 @@ int Unify(int sent1, int sent2, Assignment *Theta)
         }
     }
 }
-/* You must write this function */
-void RandomResolve()
-{
-    struct timeval start, end;
-    Assignment Theta[MAXPRED];
-    rTime=0.0;
-    rSteps=0;
-    
-    //Time at start of RandomResolve approach.
-    gettimeofday(&start, NULL);
-    //Get sentence to resolve.
-    int sent1 = 0;
-    while(1){
-	if(sentlist[sent1].num_pred == 0)
-	    break;
-	sent1++;
-    }
-    
-    // Choose random sentences to compare.
-    int random[sent1 - 1];
-    int i;
-    for(i = 0; i<sent1; i++){
-        random[i] = i;
-    }
-    int r;
-    for(i=0; i<sent1; i++){
-	r = rand() % sent1;
-	int temp = random[i];
-	random[i] = random[r];
-	random[r] = temp;
-    }
-    
-    //TODO What if we need to do the same sentence 2+ times?
-    for(i=0; i<sent1; i++){
-        rSteps += Unify(sent1, random[i], Theta);
-    }
-    
-    gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
-    int seconds = (end.tv_sec - start.tv_sec);
-    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
-    rTime= seconds + useconds;
-    
-    //Print result.
-    printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
-}
 
-/* Order sentences by number of preds in common that are also negated.*/
-int *OrderByPreds(int rSent, int rPreds[])
-{
-    int *ordered = malloc(sizeof(int) * MAXPRED);
-    int matchlist[MAXPRED];
-    int s; //Current sentence.
-    int p; //Current predicate.
-    int r; //Current resolve predicate.
-    int m; //Current match.
-    for(s=0; s<rSent; s++){
-        int match = 0;
-        int *preds = sentlist[s].pred;
-        for(p=0; p<sentlist[s].num_pred; p++){
-            for(r=0; r<sentlist[rSent].num_pred; r++){
-                if(sentlist[s].pred[p] == sentlist[rSent].pred[r]){
-                    if(sentlist[s].neg[p] != sentlist[rSent].neg[r]){
-                        match++;
-                    }
-                    break; //Continue on to next pred.
-                }
-            }
-        }
-        int pos=-1; //Position to insert.
-        for(m=0; m<(s+1); m++){
-            if(m==s){
-                ordered[s] = s;
-                matchlist[s] = match;
-            } else if(match > matchlist[m]) {
-                pos = m;
-                break;
-            }
-        }
-        if(pos != -1){
-            for(m=s; m>pos; m--){
-                ordered[m] = ordered[m-1];
-                matchlist[m] = matchlist[m-1];
-            }
-            ordered[pos] = s;
-            matchlist[pos] = match;
-        }
-    }
-    return ordered;
-}
-
-/* You must write this function */
-void HeuristicResolve()
-{
-    struct timeval start, end;
-    Assignment Theta[MAXPRED];
-    hTime=0.0;
-    hSteps=0;
-    //Time at start of RandomResolve approach.
-    gettimeofday(&start, NULL);
-    
-    //Get sentence to resolve.
-    int sent1 = 0;
-    while(1){
-	if(sentlist[sent1].num_pred == 0)
-	    break;
-	sent1++;
-    }
-    //Order by some heuristic.
-    int *heuristic = OrderByPreds(sent1, sentlist[sent1].pred);
-    //Send in loop.
-    int i;
-    for(i=0; i<sent1; i++){
-        hSteps += Unify(sent1, heuristic[i], Theta);
-    }
-    free(heuristic);
-    
-    //Get end time.
-    gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
-    int seconds = (end.tv_sec - start.tv_sec);
-    double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
-    hTime=seconds + useconds;
-    
-    //Print results.
-    printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
-}
-
-/* You must write this function */
-void Resolve(void)
-{
-    RandomResolve();
-    HeuristicResolve();
-    printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",
-           (double)hSteps/(double)rSteps,
-           hTime/rTime);
-}
-
-/* User enters a the negation of their query.  This is added to KB, and then KB is resolved to find solution */
-void ProveQuery(void)
-{
-    char query[255];
-
-    printf("\nEnter negated query: ");
-    fgets(query,255,stdin);
-    StringToSentence(query);
-    Resolve();
+/* Returns true if the parameter is a variable */
+int variable(Parameter param) {
+    if(param.var > 0 && param.con[0] == '\0') return 1; else return 0;
 }
 
 int main(int argc, char *argv[])
@@ -583,4 +636,3 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-
