@@ -7,41 +7,10 @@
 #include <time.h>
 #include "prover.h"
 
-#define MAXPRED 50
-#define MAXPARAM 10
-#define MAXSENT 100000
-#define MAXSUB 1000
-#define MAXSTRLEN 200
-
 double rTime, hTime;
 int rSteps, hSteps;
 
 int RefuteFlag=0;
-
-typedef struct {
-    char name[32];   /* Predicate name */
-    int numparam;   /* Number of parameters the predicate requires */
-} Predicate;
-
-typedef struct {
-    char con[16];   /* Storage for when the parameter is a constant */
-    int var;   /* Storage for when the parameter is a variable */
-} Parameter;
-
-typedef struct {
-    char comment[MAXSTRLEN]; /* comment from input file */
-    int refutePart;          /* set to true if this sentence came from the negated part of the knowledge base */
-    int pred[MAXPRED];         /* List of predicates in sentence (indexes into Predicate array) */
-    int neg[MAXPRED];         /* Added by T. Andersen. neg[i] set to 1 if predicate indexed by pred[i] is negated */
-    int num_pred;             /* Added by T. Andersen.  Stores the number of predicates for this sentence */
-    Parameter param[MAXPRED][MAXPARAM];   /* List of parameters for each predicate */
-} Sentence;
-
-typedef struct {
-    Parameter *var;
-    Parameter *val;
-} Assignment;
-
 int sentptr;
 Sentence sentlist[MAXSENT];
 Predicate predlist[MAXPRED];
