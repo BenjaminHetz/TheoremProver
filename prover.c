@@ -7,6 +7,8 @@
 #include <time.h>
 #include "prover.h"
 
+/* GLOBAL VARIABLES */
+
 double rTime, hTime;
 int rSteps, hSteps;
 
@@ -17,7 +19,7 @@ Predicate predlist[MAXPRED];
 int nextvar;
 
 
-/////***** Functions *****/////
+/* FUNCTIONS */
 
 
 /* Allow user to enter a sentence to be added to KB */
@@ -215,8 +217,8 @@ void replaceVar(Parameter *start, Parameter *end, int var, int val)
 /* You must write this function */
 void Resolve(void)
 {
-    RandomResolve();
-    HeuristicResolve();
+    ResolveRandom();
+    ResolveHeuristic();
     printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",
            (double)hSteps/(double)rSteps,
            hTime/rTime);
@@ -244,7 +246,7 @@ void ResolveHeuristic()
     //Send in loop.
     int i;
     for(i=0; i<sent1; i++){
-        hSteps += Unify(sent1, heuristic[i], Theta);
+        //hSteps += Unify(sent1, heuristic[i], Theta);
     }
     free(heuristic);
     
@@ -292,7 +294,7 @@ void ResolveRandom()
     
     //TODO What if we need to do the same sentence 2+ times?
     for(i=0; i<sent1; i++){
-        rSteps += Unify(sent1, random[i], Theta);
+        //rSteps += Unify(sent1, random[i], Theta);
     }
     
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
@@ -472,6 +474,7 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
     Parameter *param1 = sentlist[sent1].param[p1];
     Parameter *param2 = sentlist[sent2].param[p2];
     
+    /*
     Predicate numparampred1 = sentlist[sent1].param[p1].numparam;
     
     for (param = 0; param < numparampred1; param++){
@@ -500,6 +503,7 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
           
         }
     }
+    */
 
 }
 
@@ -507,6 +511,9 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 int variable(Parameter param) {
     if(param.var > 0 && param.con[0] == '\0') return 1; else return 0;
 }
+
+
+/* MAIN */
 
 int main(int argc, char *argv[])
 {
