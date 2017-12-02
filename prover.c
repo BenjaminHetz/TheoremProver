@@ -33,6 +33,7 @@ void AddKBSentence(void)
 }
 
 /* Add a predicate to the predicate list */
+/* Implementation unknown if correct */
 int AddPredicate(char *name, int numparam) {
     int i;
 
@@ -48,16 +49,17 @@ int AddPredicate(char *name, int numparam) {
 }
 
 /* TODO */
+/* Implementation done */
 void addPredicateWithSkip(int destSent, int srcSent, int skipPred)
 {
-  
+    addpredicates(destSent, srcSent, 0, skipPred);
+    addPredicates(destSent, srcSent, skipPred+1, sentlist[srcSent].num_pred);
 }
 
 /* Add a sentence to the KB */
-void AddSentence(int neg[MAXPRED],
-                 int pred[MAXPRED],
-                 char param[MAXPRED][MAXPARAM][16],
-                 int snum, char *leftover)
+/* Implementation unknown if correct */
+void AddSentence(int neg[MAXPRED], int pred[MAXPRED],
+                 char param[MAXPRED][MAXPARAM][16], int snum, char *leftover)
 {
     int i;
 
@@ -78,9 +80,15 @@ void AddSentence(int neg[MAXPRED],
 }
 
 /* TODO */
+/* Implementation done */
 void AddSentenceFromResolution(int s1, int s2, int p1, int p2, Assignment *theta, int numAssign)
 {
-  
+    memset(&(sentlist[sentptr]), 0, sizeof(Sentence));
+    addPredicateWithSkip(sentptr, s1, p1);
+    addPredicateWithSkip(sentptr, s2, p2);
+    performSubstitutions(sentptr, theta, numAssign);
+    StandardizeApartVariables(sentptr);
+    sentptr++;
 }
 
 /* Returns true if the parameter is a constant */
@@ -113,6 +121,7 @@ void LoadKB(void)
 }
 
 /* Order sentences by number of preds in common that are also negated.*/
+/* Implementation unknown if correct */
 int *OrderByPreds(int rSent, int rPreds[])
 {
     int *ordered = malloc(sizeof(int) * MAXPRED);
@@ -157,21 +166,47 @@ int *OrderByPreds(int rSent, int rPreds[])
 }
 
 /* TODO */
+/* Implementation not done (Couldn't read print area but I think it had a line of code unrelated to print */
 void performSubstitutions(int s, Assignment *theta, int numAssign)
 {
-  
+    int x,y,z;
+    
+    printAssignments(theta, numAssign);
+    printf("Performing substitutions %d\n", numAssign);
+    for(x=0;x<sentlist[s].num_pred; x++){
+        for(y=0; y<sentlist[sentlist[s].pred[x]].numparam; y++){
+            for(z=0; z<numAssign; z++){
+                if(sentlist[s].param[x][y].var == theta[x].var->var){
+                    //printf("Making assignment of ?...
+                    sentlist[s].param[x][y] = *(theta[z].val);
+                }
+            }
+        }
+    }
 }
 
 /* TODO */
+/* Implementation done (? should be something else, maybe ,) */
 void printAssignments(Assignment *theta, int numAssign)
 {
-  
+  int x;
+  for(x=0; x<numAssign; x++){
+      printParam(*(theta[x].var));
+      printf(" ? ");
+      printParam(*(theta[x].val));
+      printf("\n");
+  }
 }
 
 /* TODO */
+/* Implementation almost done, ? has quite a bit more */
 void printParam(Parameter p)
 {
-  
+    if(constant(p)){
+        printf("%s", p.con);
+    } else {
+      printf("%d:, ?");
+    }
 }
 
 /* User enters a the negation of their query.  This is added to KB, and then KB is resolved to find solution */
@@ -209,12 +244,19 @@ int ReadKB(char *filename)
 }
 
 /* TODO */
+/* Implementation done */
 void replaceVar(Parameter *start, Parameter *end, int var, int val)
 {
-  
+    while(start != end){
+        if(start->var ==  var){
+	    start->var=val;
+	}
+	start++;
+    }
 }
 
 /* You must write this function */
+/* Implementation done */
 void Resolve(void)
 {
     ResolveRandom();
@@ -339,6 +381,7 @@ void ShowKB(void)
 
 
 /* Standardize apart (Makes sure that each sentence has unique variables) */
+/* Implementation unknown if correct */
 void Standardize(char param[MAXPRED][MAXPARAM][16],
                  Parameter sparam[MAXPRED][MAXPARAM],
                  int pred[MAXPRED], int snum)
@@ -366,9 +409,20 @@ void Standardize(char param[MAXPRED][MAXPARAM][16],
 }
 
 /* TODO */
+/* Implementation done? */
 void StandardizeApartVariables(int s)
 {
-  
+    int oldVars = nextvar;
+    int x,y;
+    
+    for(x=0; x<sentlist[s].num_pred; x++){
+        for(y=0; y<predlist[sentlist[s].pred[x]].num_pred;y++){
+	    if(sentlist[s].param[x][y].var > 0 && sentlist[s].param[x][y].var<oldVars){
+	        replaceVar(&(sentlist[s].param[x][y]), &(sentlist[s].param[MAXPRED][MAXPARAM]), sentlist[s].param[x][y].var, nextvar);
+	        nextvar++;
+	    }
+	}
+    }
 }
 
 /* Convert text version of a sentence into internal representation */
@@ -452,12 +506,25 @@ int StringToSentence(char *line)
 }
 
 /* TODO */
+/* Implementation done? */
 int tryResolution(int sent1, int sent2)
 {
+  Assignment theta[MAXPARAM];
+  int p1, p2;
+  for(p1=0; p1<sentlist[sent1].num_pred; p1++){
+      for(p2=0; p2<sentlist[sent2].num_pred; p2++){
+	  int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
+	  if(numAssign >= 0){
+              printf("Adding sentence\n");
+	      AddSentenceFromResolution(sent1, sent2, p1, p2, theta, numAssign);
+	  }
+      }
+  }
   return 0;
 }
 
 /*Unify two predicates*/
+/* Implementation done */
 int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 {
     int param;
@@ -467,44 +534,42 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
         return -1;
     }
     //make sure the predicates aren't the same
-    if (sentlist[sent1].pred[p1] ==  sentlist[sent2].pred[p2]){
+    if (sentlist[sent1].pred[p1] !=  sentlist[sent2].pred[p2]){
         return -1;
     }
+    
     //Store the list of parameters for each predicate
-    Parameter *param1 = sentlist[sent1].param[p1];
-    Parameter *param2 = sentlist[sent2].param[p2];
+    Parameter param1[MAXPARAM];
+    Parameter param2[MAXPARAM];
     
-    /*
-    Predicate numparampred1 = sentlist[sent1].param[p1].numparam;
+    *(param1) = *(sentlist[sent1].param[p1]);
+    *(param2) = *(sentlist[sent2].param[p2]);
     
-    for (param = 0; param < numparampred1; param++){
-        int j;
-        //Find whether theta has a var val pair for the var at index
-        //param, put the val from theta in if it does
-        for (j = 0; j < numAssign; j++){
-            if (!memcmp(&(param1[param]), &(theta[j].var), sizeof(Parameter))){
-                param2[param] = *(theta[j].val);
-            }
-        }
-        //see if parameters are the same
-        if (memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
-        //if first is a variable then we can substitute the val
-            if (variable(param1[param]) && !variable(param2[param])){
-                theta[numAssign].var = &(param1[param]);
-                theta[numAssign++].val = &(param2[param]);
-            }
-            else if (variable(param2[param]) && !variable(param1[param])){
-                theta[numAssign].var = &(param2[param]);
-                theta[numAssign++].val = &(param1[param]);
-            }
-            else{
-                return -1;
-            }
-          
-        }
+    for(param=0; param<predlist[sentlist[sent1].pred[p1]].numparam; param++){
+        int i;
+	//Need to walk assignment list and make them.
+	for(i=0;i<numAssign;i++){
+	    if(!memcmp(&(param1[param]), theta[i].var, sizeof(Parameter))){
+	        param1[param] = *(theta[i].val);
+	    }
+	    if(!memcmp(&(param2[param]), theta[i].var, sizeof(Parameter))){
+	        param2[param] = *(theta[i].val);
+	    }
+	}
+	
+	if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
+	    if(variable(param1[param])){
+	        theta[numAssign].var = &(sentlist[sent1].param[p1][param]);
+		theta[numAssign++].val = &(sentlist[sent2].param[p2][param]);
+	    } 
+	    else if(variable(sentlist[sent1].param[p1][param])) {
+	        theta[numAssign].val = &(sentlist[sent1].param[p1][param]);
+		theta[numAssign++].var = &(sentlist[sent2].param[p2][param]);
+	    }
+	    else return -1;
+	}
     }
-    */
-
+    return numAssign;
 }
 
 /* Returns true if the parameter is a variable */
