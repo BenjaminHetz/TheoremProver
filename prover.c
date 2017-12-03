@@ -97,8 +97,10 @@ void AddSentenceFromResolution(int s1, int s2, int p1, int p2, Assignment *theta
     memset(&(sentlist[sentptr]), 0, sizeof(Sentence));
     addPredicateWithSkip(sentptr, s1, p1);
     addPredicateWithSkip(sentptr, s2, p2);
+    printf("Seg Fault time?\n");
     performSubstitutions(sentptr, theta, numAssign);
     StandardizeApartVariables(sentptr);
+    printf("Guess not\n");
     sentptr++;
 }
 
@@ -110,6 +112,30 @@ int constant(Parameter param) {
 /* Returns true if the parameter is empty */
 int empty(Parameter *param) {
     if(param->var <= 0 && param->con[0] == '\0') return 1; else return 0;
+}
+
+/* Return a priority for set of sentences.*/
+int *getPriority(int sentToCompare, int sentToResolve)
+{
+    int priority = 0;
+    int pc; //Current predicate from sentToCompare.
+    int pr; //Current predicate from sentToResolve.
+    //int *preds = sentlist[s].pred;
+    for(pc=0; pc<sentlist[sentToCompare].num_pred; pc++){
+        int curPriority = priority;
+        for(pr=0; pr<sentlist[sentToResolve].num_pred; pc++){
+            if(sentlist[sentToCompare].pred[pc] == sentlist[sentToResolve].pred[pr]){
+                if(sentlist[sentToCopmare].neg[pc] !=sentlist[sentToResolve].neg[pr]){
+                    priority--;
+                    break;
+                }
+            }
+        }
+        if(curPriority == priority){
+            priority++; 
+        }
+    }
+    return priority;
 }
 
 /* Set the KB to empty */
@@ -129,51 +155,6 @@ void LoadKB(void)
     fgets(filename,255,stdin);
     if(!ReadKB(filename))
         InitializeKB();
-}
-
-/* Order sentences by number of preds in common that are also negated.*/
-/* Implementation unknown if correct */
-int *OrderByPreds(int rSent, int rPreds[])
-{
-    int *ordered = malloc(sizeof(int) * MAXPRED);
-    int matchlist[MAXPRED];
-    int s; //Current sentence.
-    int p; //Current predicate.
-    int r; //Current resolve predicate.
-    int m; //Current match.
-    for(s=0; s<rSent; s++){
-        int match = 0;
-        int *preds = sentlist[s].pred;
-        for(p=0; p<sentlist[s].num_pred; p++){
-            for(r=0; r<sentlist[rSent].num_pred; r++){
-                if(sentlist[s].pred[p] == sentlist[rSent].pred[r]){
-                    if(sentlist[s].neg[p] != sentlist[rSent].neg[r]){
-                        match++;
-                    }
-                    break; //Continue on to next pred.
-                }
-            }
-        }
-        int pos=-1; //Position to insert.
-        for(m=0; m<(s+1); m++){
-            if(m==s){
-                ordered[s] = s;
-                matchlist[s] = match;
-            } else if(match > matchlist[m]) {
-                pos = m;
-                break;
-            }
-        }
-        if(pos != -1){
-            for(m=s; m>pos; m--){
-                ordered[m] = ordered[m-1];
-                matchlist[m] = matchlist[m-1];
-            }
-            ordered[pos] = s;
-            matchlist[pos] = match;
-        }
-    }
-    return ordered;
 }
 
 /* Substitute variables based on previous resolution. */
@@ -277,27 +258,41 @@ void Resolve(void)
 void ResolveHeuristic()
 {
     struct timeval start, end;
-    Assignment Theta[MAXPRED];
     hTime=0.0;
     hSteps=0;
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
 
     //Get sentence to resolve.
-    int sent1 = 0;
+    int sentToResolve = 0;
     while(1){
-	if(sentlist[sent1].num_pred == 0)
+	if(sentlist[sentToResolve].num_pred == 0)
 	    break;
-	sent1++;
+	sentToResolve++;
     }
     //Order by some heuristic.
-    int *heuristic = OrderByPreds(sent1, sentlist[sent1].pred);
-    //Send in loop.
-    int i;
-    for(i=0; i<sent1; i++){
-        //hSteps += Unify(sent1, heuristic[i], Theta);
+    PriorityQueue ordered = createPriorityQueue();
+    int pos;
+    for(pos=0; pos<sentToResolve; pos++){
+        int primPriority = getPriority(pos, sentToResolve);
+        int secPriority = sentlist[pos].num_pred;
+        addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
     }
-    free(heuristic);
+    
+    //Loop until done.
+    while(1){
+        QueueObject *nextPair = removeFromQueue(&ordered);
+        tryResolution(nextPair->sent1, nextPair->sent2);
+        if(sentlist[sentptr-1].num_pred == 0){
+            break;
+        }
+        int pos;
+        for(pos=0; pos<sentptr-1; pos++){
+            int primPriority = getPriority(pos, sentptr-1);
+            int secPriority = sentlist[pos].num_pred;
+            addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+        }
+    }
 
     //Get end time.
     gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
@@ -313,37 +308,41 @@ void ResolveHeuristic()
 void ResolveRandom()
 {
     struct timeval start, end;
-    Assignment Theta[MAXPRED];
     rTime=0.0;
     rSteps=0;
 
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
+    
     //Get sentence to resolve.
-    int sent1 = 0;
+    int sentToResolve = 0;
     while(1){
-	if(sentlist[sent1].num_pred == 0)
+	if(sentlist[sentToResolve].num_pred == 0)
 	    break;
-	sent1++;
+	sentToResolve++;
     }
-
-    // Choose random sentences to compare.
-    int random[sent1 - 1];
-    int i;
-    for(i = 0; i<sent1; i++){
-        random[i] = i;
+    //Order by some heuristic.
+    PriorityQueue ordered = createPriorityQueue();
+    int pos;
+    for(pos=0; pos<sentToResolve; pos++){
+        int primPriority = rand();
+        int secPriority = rand();
+        addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
     }
-    int r;
-    for(i=0; i<sent1; i++){
-	r = rand() % sent1;
-	int temp = random[i];
-	random[i] = random[r];
-	random[r] = temp;
-    }
-
-    //TODO What if we need to do the same sentence 2+ times?
-    for(i=0; i<sent1; i++){
-        //rSteps += Unify(sent1, random[i], Theta);
+    
+    //Loop until done.
+    while(1){
+        QueueObject *nextPair = removeFromQueue(&ordered);
+        tryResolution(nextPair->sent1, nextPair->sent2);
+        if(sentlist[sentptr-1].num_pred == 0){
+            break;
+        }
+        int pos;
+        for(pos=0; pos<sentptr-1; pos++){
+            int primPriority = getPriority(pos, sentptr-1);
+            int secPriority = sentlist[pos].num_pred;
+            addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+        }
     }
 
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
@@ -514,6 +513,7 @@ int StringToSentence(char *line)
 /* Attempt resolution of the sentences. */
 int tryResolution(int sent1, int sent2)
 {
+  printf("tryResolution\n");
   Assignment theta[MAXPARAM];
   int p1, p2;
   for(p1=0; p1<sentlist[sent1].num_pred; p1++){
