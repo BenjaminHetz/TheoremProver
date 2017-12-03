@@ -20,14 +20,14 @@ typedef struct {
     /* Predicate name */
     char name[32];
     /* Number of parameters the predicate requires */
-    int numparam;   
+    int numparam;
 } Predicate;
 
 typedef struct {
     /* Storage for when the parameter is a constant */
     char con[16];
     /* Storage for when the parameter is a variable */
-    int var;   
+    int var;
 } Parameter;
 
 typedef struct {
@@ -48,7 +48,6 @@ typedef struct {
 typedef struct {
     Parameter *var;
     Parameter *val;
-    int numAssign;
 } Assignment;
 
 
@@ -59,6 +58,9 @@ void AddKBSentence(void);
 
 /* Add a predicate to the predicate list */
 int AddPredicate(char *name, int numparam);
+
+/* TODO */
+void AddPredicates(int destSent, int srcSent, int from, int to);
 
 /* TODO Explanation Comment */
 void addPredicateWithSkip(int destSent, int srcSent, int skipPred);

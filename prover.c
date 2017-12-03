@@ -47,13 +47,23 @@ int AddPredicate(char *name, int numparam) {
     }
     return i;
 }
+void AddPredicates(int destSent, int srcSent, int from, int to)
+{
+	int i;
+	for (i = from; i < to; i++){
+		sentlist[destSent].pred[sentlist[destSent].num_pred] = sentlist[srcSent].pred[i];
+		sentlist[destSent].neg[sentlist[destSent].num_pred] = sentlist[srcSent].neg[i];
+		memcpy(sentlist[destSent].param[sentlist[destSent].num_pred], sentlist[srcSent].param[i], sizeof(Parameter));
+		sentlist[destSent].num_pred++;
+	}
+}
 
 /* TODO */
 /* Implementation done */
 void addPredicateWithSkip(int destSent, int srcSent, int skipPred)
 {
-    addpredicates(destSent, srcSent, 0, skipPred);
-    addPredicates(destSent, srcSent, skipPred+1, sentlist[srcSent].num_pred);
+    AddPredicates(destSent, srcSent, 0, skipPred);
+    AddPredicates(destSent, srcSent, skipPred+1, sentlist[srcSent].num_pred);
 }
 
 /* Add a sentence to the KB */
@@ -170,11 +180,11 @@ int *OrderByPreds(int rSent, int rPreds[])
 void performSubstitutions(int s, Assignment *theta, int numAssign)
 {
     int x,y,z;
-    
+
     printAssignments(theta, numAssign);
     printf("Performing substitutions %d\n", numAssign);
     for(x=0;x<sentlist[s].num_pred; x++){
-        for(y=0; y<sentlist[sentlist[s].pred[x]].numparam; y++){
+        for(y=0; y<predlist[sentlist[s].pred[x]].numparam; y++){
             for(z=0; z<numAssign; z++){
                 if(sentlist[s].param[x][y].var == theta[x].var->var){
                     //printf("Making assignment of ?...
@@ -192,7 +202,7 @@ void printAssignments(Assignment *theta, int numAssign)
   int x;
   for(x=0; x<numAssign; x++){
       printParam(*(theta[x].var));
-      printf(" ? ");
+      printf(" = ");
       printParam(*(theta[x].val));
       printf("\n");
   }
@@ -205,7 +215,7 @@ void printParam(Parameter p)
     if(constant(p)){
         printf("%s", p.con);
     } else {
-      printf("%d:, ?");
+      printf("%d", 'a' + (unsigned char)((p.var)%26));
     }
 }
 
@@ -243,7 +253,6 @@ int ReadKB(char *filename)
     return 1;
 }
 
-/* TODO */
 /* Implementation done */
 void replaceVar(Parameter *start, Parameter *end, int var, int val)
 {
@@ -275,7 +284,7 @@ void ResolveHeuristic()
     hSteps=0;
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
-    
+
     //Get sentence to resolve.
     int sent1 = 0;
     while(1){
@@ -291,13 +300,13 @@ void ResolveHeuristic()
         //hSteps += Unify(sent1, heuristic[i], Theta);
     }
     free(heuristic);
-    
+
     //Get end time.
     gettimeofday(&end, NULL); //Time at end of HeuristicResolve approach.
     int seconds = (end.tv_sec - start.tv_sec);
     double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     hTime=seconds + useconds;
-    
+
     //Print results.
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
@@ -309,7 +318,7 @@ void ResolveRandom()
     Assignment Theta[MAXPRED];
     rTime=0.0;
     rSteps=0;
-    
+
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
     //Get sentence to resolve.
@@ -319,7 +328,7 @@ void ResolveRandom()
 	    break;
 	sent1++;
     }
-    
+
     // Choose random sentences to compare.
     int random[sent1 - 1];
     int i;
@@ -333,17 +342,17 @@ void ResolveRandom()
 	random[i] = random[r];
 	random[r] = temp;
     }
-    
+
     //TODO What if we need to do the same sentence 2+ times?
     for(i=0; i<sent1; i++){
         //rSteps += Unify(sent1, random[i], Theta);
     }
-    
+
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
     int seconds = (end.tv_sec - start.tv_sec);
     double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     rTime= seconds + useconds;
-    
+
     //Print result.
     printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
 }
@@ -414,9 +423,9 @@ void StandardizeApartVariables(int s)
 {
     int oldVars = nextvar;
     int x,y;
-    
+
     for(x=0; x<sentlist[s].num_pred; x++){
-        for(y=0; y<predlist[sentlist[s].pred[x]].num_pred;y++){
+        for(y=0; y<predlist[sentlist[s].pred[x]].numparam;y++){
 	    if(sentlist[s].param[x][y].var > 0 && sentlist[s].param[x][y].var<oldVars){
 	        replaceVar(&(sentlist[s].param[x][y]), &(sentlist[s].param[MAXPRED][MAXPARAM]), sentlist[s].param[x][y].var, nextvar);
 	        nextvar++;
@@ -472,7 +481,7 @@ int StringToSentence(char *line)
                 i++;
             j = i;
          /* while(line[j] != ',' && line[j] != ')' && line[j] != '\0') j++; commented out by Tim Andersen */
-         /* The following line added by Tim Andersen to insure 
+         /* The following line added by Tim Andersen to insure
             that a parameter name only includes text characters */
             while(((line[j] >= 'a') && (line[j] <= 'z')) || ((line[j]>='A') && (line[j]<='Z')))
                 j++;
@@ -496,7 +505,7 @@ int StringToSentence(char *line)
                 default:
                     return 0;
             }
-        }    
+        }
         i = j+1;
         pred[snum] = AddPredicate(pname,p);
         snum++;
@@ -537,14 +546,14 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
     if (sentlist[sent1].pred[p1] !=  sentlist[sent2].pred[p2]){
         return -1;
     }
-    
+
     //Store the list of parameters for each predicate
     Parameter param1[MAXPARAM];
     Parameter param2[MAXPARAM];
-    
+
     *(param1) = *(sentlist[sent1].param[p1]);
     *(param2) = *(sentlist[sent2].param[p2]);
-    
+
     for(param=0; param<predlist[sentlist[sent1].pred[p1]].numparam; param++){
         int i;
 	//Need to walk assignment list and make them.
@@ -556,12 +565,12 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 	        param2[param] = *(theta[i].val);
 	    }
 	}
-	
+
 	if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
 	    if(variable(param1[param])){
 	        theta[numAssign].var = &(sentlist[sent1].param[p1][param]);
 		theta[numAssign++].val = &(sentlist[sent2].param[p2][param]);
-	    } 
+	    }
 	    else if(variable(sentlist[sent1].param[p1][param])) {
 	        theta[numAssign].val = &(sentlist[sent1].param[p1][param]);
 		theta[numAssign++].var = &(sentlist[sent2].param[p2][param]);
