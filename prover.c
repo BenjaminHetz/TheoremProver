@@ -32,8 +32,8 @@ void AddKBSentence(void)
     StringToSentence(sent);
 }
 
-/* Add a predicate to the predicate list */
-/* Implementation unknown if correct */
+/* Add a predicate to the predicate list. 
+    For parsing.*/
 int AddPredicate(char *name, int numparam) {
     int i;
 
@@ -47,6 +47,8 @@ int AddPredicate(char *name, int numparam) {
     }
     return i;
 }
+
+/* Combine predicates together. */
 void AddPredicates(int destSent, int srcSent, int from, int to)
 {
 	int i;
@@ -58,8 +60,8 @@ void AddPredicates(int destSent, int srcSent, int from, int to)
 	}
 }
 
-/* TODO */
-/* Implementation done */
+/* Combine predicates into one predicate set after a resoluation occurs.
+    Skips the predicate that was supposed to be remove. */
 void addPredicateWithSkip(int destSent, int srcSent, int skipPred)
 {
     AddPredicates(destSent, srcSent, 0, skipPred);
@@ -89,8 +91,7 @@ void AddSentence(int neg[MAXPRED], int pred[MAXPRED],
     sentptr++;
 }
 
-/* TODO */
-/* Implementation done */
+/* Combine two sentences into one after to finish a resolution. */
 void AddSentenceFromResolution(int s1, int s2, int p1, int p2, Assignment *theta, int numAssign)
 {
     memset(&(sentlist[sentptr]), 0, sizeof(Sentence));
@@ -175,8 +176,7 @@ int *OrderByPreds(int rSent, int rPreds[])
     return ordered;
 }
 
-/* TODO */
-/* Implementation not done (Couldn't read print area but I think it had a line of code unrelated to print */
+/* Substitute variables based on previous resolution. */
 void performSubstitutions(int s, Assignment *theta, int numAssign)
 {
     int x,y,z;
@@ -195,8 +195,7 @@ void performSubstitutions(int s, Assignment *theta, int numAssign)
     }
 }
 
-/* TODO */
-/* Implementation done (? should be something else, maybe ,) */
+/* Print assignments */
 void printAssignments(Assignment *theta, int numAssign)
 {
   int x;
@@ -208,8 +207,7 @@ void printAssignments(Assignment *theta, int numAssign)
   }
 }
 
-/* TODO */
-/* Implementation almost done, ? has quite a bit more */
+/* Print parameters. */
 void printParam(Parameter p)
 {
     if(constant(p)){
@@ -253,7 +251,7 @@ int ReadKB(char *filename)
     return 1;
 }
 
-/* Implementation done */
+/* Replace a var with a val. */
 void replaceVar(Parameter *start, Parameter *end, int var, int val)
 {
     while(start != end){
@@ -264,8 +262,8 @@ void replaceVar(Parameter *start, Parameter *end, int var, int val)
     }
 }
 
-/* You must write this function */
-/* Implementation done */
+/* Resolve the knowledge base using a random and heuristic resolve,
+    then compare the times they took. */
 void Resolve(void)
 {
     ResolveRandom();
@@ -417,8 +415,7 @@ void Standardize(char param[MAXPRED][MAXPARAM][16],
     }
 }
 
-/* TODO */
-/* Implementation done? */
+/* Ensure all variables are different unless they are supposed to be the same.*/
 void StandardizeApartVariables(int s)
 {
     int oldVars = nextvar;
@@ -514,8 +511,7 @@ int StringToSentence(char *line)
     return 1;
 }
 
-/* TODO */
-/* Implementation done? */
+/* Attempt resolution of the sentences. */
 int tryResolution(int sent1, int sent2)
 {
   Assignment theta[MAXPARAM];
@@ -532,8 +528,7 @@ int tryResolution(int sent1, int sent2)
   return 0;
 }
 
-/*Unify two predicates*/
-/* Implementation done */
+/* Unify two predicates */
 int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 {
     int param;
