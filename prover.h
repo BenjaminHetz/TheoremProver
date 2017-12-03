@@ -2,8 +2,8 @@
 	prover.h: Defines the functions for prover.c
 */
 
-//#ifndef __PROVER_H
-//#define __PROVER_H
+#ifndef __PROVER_H
+#define __PROVER_H
 
 /*CONSTANTS*/
 
@@ -136,3 +136,5 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *Theta);
 
 /* Returns true if the parameter is a variable */
 int variable(Parameter param);
+
+#endif

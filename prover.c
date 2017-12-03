@@ -32,7 +32,7 @@ void AddKBSentence(void)
     StringToSentence(sent);
 }
 
-/* Add a predicate to the predicate list. 
+/* Add a predicate to the predicate list.
     For parsing.*/
 int AddPredicate(char *name, int numparam) {
     int i;
@@ -187,7 +187,7 @@ void performSubstitutions(int s, Assignment *theta, int numAssign)
         for(y=0; y<predlist[sentlist[s].pred[x]].numparam; y++){
             for(z=0; z<numAssign; z++){
                 if(sentlist[s].param[x][y].var == theta[x].var->var){
-                    //printf("Making assignment of ?...
+                    printf("Making assignment of %s", variable(*(theta[z].val))?"v":theta[z].val->con);
                     sentlist[s].param[x][y] = *(theta[z].val);
                 }
             }
