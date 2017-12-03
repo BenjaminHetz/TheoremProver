@@ -511,7 +511,7 @@ int StringToSentence(char *line)
 }
 
 /* Attempt resolution of the sentences. */
-int tryResolution(int sent1, int sent2)
+void tryResolution(int sent1, int sent2)
 {
   printf("tryResolution\n");
   Assignment theta[MAXPARAM];
@@ -525,7 +525,7 @@ int tryResolution(int sent1, int sent2)
 	  }
       }
   }
-  return 0;
+  return;
 }
 
 /* Unify two predicates */
