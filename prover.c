@@ -5,8 +5,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
-#include "prover.h"
 
+#include "prover.h"
+#include "PriorityQueue.h"
 /* GLOBAL VARIABLES */
 
 double rTime, hTime;
@@ -115,7 +116,7 @@ int empty(Parameter *param) {
 }
 
 /* Return a priority for set of sentences.*/
-int *getPriority(int sentToCompare, int sentToResolve)
+int getPriority(int sentToCompare, int sentToResolve)
 {
     int priority = 0;
     int pc; //Current predicate from sentToCompare.
@@ -125,14 +126,14 @@ int *getPriority(int sentToCompare, int sentToResolve)
         int curPriority = priority;
         for(pr=0; pr<sentlist[sentToResolve].num_pred; pc++){
             if(sentlist[sentToCompare].pred[pc] == sentlist[sentToResolve].pred[pr]){
-                if(sentlist[sentToCopmare].neg[pc] !=sentlist[sentToResolve].neg[pr]){
+                if(sentlist[sentToCompare].neg[pc] !=sentlist[sentToResolve].neg[pr]){
                     priority--;
                     break;
                 }
             }
         }
         if(curPriority == priority){
-            priority++; 
+            priority++;
         }
     }
     return priority;
@@ -271,17 +272,17 @@ void ResolveHeuristic()
 	sentToResolve++;
     }
     //Order by some heuristic.
-    PriorityQueue ordered = createPriorityQueue();
+    PriorityQueue *ordered = createPriorityQueue();
     int pos;
     for(pos=0; pos<sentToResolve; pos++){
         int primPriority = getPriority(pos, sentToResolve);
         int secPriority = sentlist[pos].num_pred;
-        addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+        addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
     }
-    
+
     //Loop until done.
     while(1){
-        QueueObject *nextPair = removeFromQueue(&ordered);
+        QueueObject *nextPair = pullFromQueue(ordered);
         tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
@@ -290,7 +291,7 @@ void ResolveHeuristic()
         for(pos=0; pos<sentptr-1; pos++){
             int primPriority = getPriority(pos, sentptr-1);
             int secPriority = sentlist[pos].num_pred;
-            addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+            addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
         }
     }
 
@@ -313,7 +314,7 @@ void ResolveRandom()
 
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
-    
+
     //Get sentence to resolve.
     int sentToResolve = 0;
     while(1){
@@ -322,17 +323,17 @@ void ResolveRandom()
 	sentToResolve++;
     }
     //Order by some heuristic.
-    PriorityQueue ordered = createPriorityQueue();
+    PriorityQueue *ordered = createPriorityQueue();
     int pos;
     for(pos=0; pos<sentToResolve; pos++){
         int primPriority = rand();
         int secPriority = rand();
-        addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+        addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
     }
-    
+
     //Loop until done.
     while(1){
-        QueueObject *nextPair = removeFromQueue(&ordered);
+        QueueObject *nextPair = pullFromQueue(ordered);
         tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
@@ -341,7 +342,7 @@ void ResolveRandom()
         for(pos=0; pos<sentptr-1; pos++){
             int primPriority = getPriority(pos, sentptr-1);
             int secPriority = sentlist[pos].num_pred;
-            addToQueue(&ordered, primPriority, secPriority, pos, sentToResolve);
+            addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
         }
     }
 

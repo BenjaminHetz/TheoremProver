@@ -8,7 +8,7 @@ QueueObject *createQueueObject(int sent1, int sent2,
 	return NULL;
 }
 
-PriorityQueue *createPriorityQueue(int size)
+PriorityQueue *createPriorityQueue()
 {
 	int queueSizeInBytes = 512 * sizeof(QueueObject *);
 	PriorityQueue *Queue = (PriorityQueue*) calloc(1, sizeof(PriorityQueue));
@@ -43,7 +43,7 @@ int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 	Queue->heap[index] = ObjectToAdd;
 }
 
-QueueObject *removeFromQueue(PriorityQueue *Queue)
+QueueObject *pullFromQueue(PriorityQueue *Queue)
 {
 	QueueObject *ObjectToReturn = Queue->heap[0];
 	Queue->count--;

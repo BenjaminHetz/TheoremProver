@@ -50,12 +50,6 @@ typedef struct {
     Parameter *val;
 } Assignment;
 
-typedef struct {
-	int sent1;
-	int sent2;
-	unsigned int priority;
-} QueueObject;
-
 /*FUNCTION HEADERS*/
 
 /* Allow user to enter a sentence to be added to KB */
@@ -83,14 +77,14 @@ int constant(Parameter param);
 /* Returns true if the parameter is empty */
 int empty(Parameter *param);
 
+/* Order sentences by number of preds in common that are also negated.*/
+int getPriority(int sentToCompare, int sentToResolve);
+
 /* Set the KB to empty */
 void InitializeKB(void);
 
 /* Load a KB from a text file */
 void LoadKB(void);
-
-/* Order sentences by number of preds in common that are also negated.*/
-int *OrderByPreds(int rSent, int rPreds[]);
 
 /* TODO Explanation Comment */
 void performSubstitutions(int s, Assignment *theta ,int numAssign);

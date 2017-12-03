@@ -20,7 +20,7 @@ QueueObject *createQueueObject(int sent1, int sent2,
 			       int primaryPriority,
 			       int secondaryPriority);
 
-PriorityQueue *createPriorityQueue(int size);
+PriorityQueue *createPriorityQueue();
 
 int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 		int primaryPriority, int secondaryPriority);
