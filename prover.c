@@ -34,7 +34,7 @@ void AddKBSentence(void)
 }
 
 /* Add a predicate to the predicate list.
-    For parsing.*/
+   For parsing.*/
 int AddPredicate(char *name, int numparam) {
     int i;
 
@@ -42,7 +42,7 @@ int AddPredicate(char *name, int numparam) {
     /* Check to see if predicate already in list */
     while(predlist[i].name[0] != '\0' && strcmp(name,predlist[i].name)) i++;
     if(predlist[i].name[0] == '\0') {
-       /* Not in predicate list, so add */
+        /* Not in predicate list, so add */
         strcpy(predlist[i].name,name);
         predlist[i].numparam = numparam;
     }
@@ -52,17 +52,17 @@ int AddPredicate(char *name, int numparam) {
 /* Combine predicates together. */
 void AddPredicates(int destSent, int srcSent, int from, int to)
 {
-	int i;
-	for (i = from; i < to; i++){
-		sentlist[destSent].pred[sentlist[destSent].num_pred] = sentlist[srcSent].pred[i];
-		sentlist[destSent].neg[sentlist[destSent].num_pred] = sentlist[srcSent].neg[i];
-		memcpy(sentlist[destSent].param[sentlist[destSent].num_pred], sentlist[srcSent].param[i], sizeof(Parameter));
-		sentlist[destSent].num_pred++;
-	}
+    int i;
+    for (i = from; i < to; i++){
+        sentlist[destSent].pred[sentlist[destSent].num_pred] = sentlist[srcSent].pred[i];
+        sentlist[destSent].neg[sentlist[destSent].num_pred] = sentlist[srcSent].neg[i];
+        memcpy(sentlist[destSent].param[sentlist[destSent].num_pred], sentlist[srcSent].param[i], sizeof(Parameter));
+        sentlist[destSent].num_pred++;
+    }
 }
 
 /* Combine predicates into one predicate set after a resoluation occurs.
-    Skips the predicate that was supposed to be remove. */
+   Skips the predicate that was supposed to be remove. */
 void addPredicateWithSkip(int destSent, int srcSent, int skipPred)
 {
     AddPredicates(destSent, srcSent, 0, skipPred);
@@ -180,13 +180,13 @@ void performSubstitutions(int s, Assignment *theta, int numAssign)
 /* Print assignments */
 void printAssignments(Assignment *theta, int numAssign)
 {
-  int x;
-  for(x=0; x<numAssign; x++){
-      printParam(*(theta[x].var));
-      printf(" = ");
-      printParam(*(theta[x].val));
-      printf("\n");
-  }
+    int x;
+    for(x=0; x<numAssign; x++){
+        printParam(*(theta[x].var));
+        printf(" = ");
+        printParam(*(theta[x].val));
+        printf("\n");
+    }
 }
 
 /* Print parameters. */
@@ -195,7 +195,7 @@ void printParam(Parameter p)
     if(constant(p)){
         printf("%s", p.con);
     } else {
-      printf("%d", 'a' + (unsigned char)((p.var)%26));
+        printf("%d", 'a' + (unsigned char)((p.var)%26));
     }
 }
 
@@ -238,14 +238,14 @@ void replaceVar(Parameter *start, Parameter *end, int var, int val)
 {
     while(start != end){
         if(start->var ==  var){
-	    start->var=val;
-	}
-	start++;
+            start->var=val;
+        }
+        start++;
     }
 }
 
 /* Resolve the knowledge base using a random and heuristic resolve,
-    then compare the times they took. */
+   then compare the times they took. */
 void Resolve(void)
 {
     ResolveRandom();
@@ -267,32 +267,39 @@ void ResolveHeuristic()
     //Get sentence to resolve.
     int sentToResolve = 0;
     while(1){
-	if(sentlist[sentToResolve].num_pred == 0)
-	    break;
-	sentToResolve++;
+        if(sentlist[sentToResolve].num_pred == 0){
+            sentToResolve--;
+            break;
+        }
+        sentToResolve++;
     }
     //Order by some heuristic.
     PriorityQueue *ordered = createPriorityQueue();
     int pos;
+	fprintf(stderr, "****ENTER THE FOR LOOP****\n");
     for(pos=0; pos<sentToResolve; pos++){
         int primPriority = getPriority(pos, sentToResolve);
         int secPriority = sentlist[pos].num_pred;
-        addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
+        addToQueue(ordered, pos, sentToResolve, primPriority, secPriority);
     }
+	fprintf(stderr, "****EXIT THE FOR LOOP****\n");
 
     //Loop until done.
     while(1){
         QueueObject *nextPair = pullFromQueue(ordered);
+	fprintf(stderr, "Trying resolution\n");
         tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
         }
         int pos;
+	fprintf(stderr, "****ENTER THE FOR LOOP****\n");
         for(pos=0; pos<sentptr-1; pos++){
             int primPriority = getPriority(pos, sentptr-1);
             int secPriority = sentlist[pos].num_pred;
-            addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
+            addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
         }
+	fprintf(stderr, "****EXIT THE FOR LOOP****\n");
     }
 
     //Get end time.
@@ -318,18 +325,23 @@ void ResolveRandom()
     //Get sentence to resolve.
     int sentToResolve = 0;
     while(1){
-	if(sentlist[sentToResolve].num_pred == 0)
-	    break;
-	sentToResolve++;
+        if(sentlist[sentToResolve].num_pred == 0){
+            sentToResolve--;
+            break;
+        }
+        sentToResolve++;
     }
     //Order by some heuristic.
     PriorityQueue *ordered = createPriorityQueue();
     int pos;
+    srand(time(NULL));
+	fprintf(stderr, "****ENTER THE FOR LOOP****\n");
     for(pos=0; pos<sentToResolve; pos++){
-        int primPriority = rand();
-        int secPriority = rand();
-        addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
+        int primPriority = rand() % MAXPRED;
+        int secPriority = rand() % MAXPRED;
+        addToQueue(ordered, pos, sentToResolve, primPriority, secPriority);
     }
+	fprintf(stderr, "****EXIT THE FOR LOOP****\n");
 
     //Loop until done.
     while(1){
@@ -339,11 +351,13 @@ void ResolveRandom()
             break;
         }
         int pos;
+	fprintf(stderr, "****ENTER THE BROKEN FOR LOOP****\n");
         for(pos=0; pos<sentptr-1; pos++){
-            int primPriority = getPriority(pos, sentptr-1);
-            int secPriority = sentlist[pos].num_pred;
-            addToQueue(ordered, primPriority, secPriority, pos, sentToResolve);
+            int primPriority = rand() % MAXPRED;
+            int secPriority = rand() % MAXPRED;
+            addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
         }
+	fprintf(stderr, "****EXIT THE BROKEN FOR LOOP****\n");
     }
 
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
@@ -397,22 +411,22 @@ void Standardize(char param[MAXPRED][MAXPARAM][16],
 
     for(i=0; i<256; i++) sub[i] = -1;
     for(k=0; k<snum; k++)
-    for(j=0; j<MAXPARAM; j++) {
-        i = pred[k];
-        if(param[k][j][0] == '\0') continue;
-        /*else if(isupper(param[k][j][0])) strcpy(sparam[i][j].con,param[k][j]);*/
-        else if(isupper(param[k][j][0])) strcpy(sparam[k][j].con,param[k][j]);
-        else {
-            if(sub[(unsigned char) param[k][j][0]] == -1) {
-                sub[(unsigned char) param[k][j][0]] = nextvar;
-                sparam[k][j].var = nextvar;
-                nextvar++;
-             }
-             else {
-                sparam[k][j].var = sub[(unsigned char) param[k][j][0]];
-             }
+        for(j=0; j<MAXPARAM; j++) {
+            i = pred[k];
+            if(param[k][j][0] == '\0') continue;
+            /*else if(isupper(param[k][j][0])) strcpy(sparam[i][j].con,param[k][j]);*/
+            else if(isupper(param[k][j][0])) strcpy(sparam[k][j].con,param[k][j]);
+            else {
+                if(sub[(unsigned char) param[k][j][0]] == -1) {
+                    sub[(unsigned char) param[k][j][0]] = nextvar;
+                    sparam[k][j].var = nextvar;
+                    nextvar++;
+                }
+                else {
+                    sparam[k][j].var = sub[(unsigned char) param[k][j][0]];
+                }
+            }
         }
-    }
 }
 
 /* Ensure all variables are different unless they are supposed to be the same.*/
@@ -423,11 +437,11 @@ void StandardizeApartVariables(int s)
 
     for(x=0; x<sentlist[s].num_pred; x++){
         for(y=0; y<predlist[sentlist[s].pred[x]].numparam;y++){
-	    if(sentlist[s].param[x][y].var > 0 && sentlist[s].param[x][y].var<oldVars){
-	        replaceVar(&(sentlist[s].param[x][y]), &(sentlist[s].param[MAXPRED][MAXPARAM]), sentlist[s].param[x][y].var, nextvar);
-	        nextvar++;
-	    }
-	}
+            if(sentlist[s].param[x][y].var > 0 && sentlist[s].param[x][y].var<oldVars){
+                replaceVar(&(sentlist[s].param[x][y]), &(sentlist[s].param[MAXPRED][MAXPARAM]), sentlist[s].param[x][y].var, nextvar);
+                nextvar++;
+            }
+        }
     }
 }
 
@@ -452,7 +466,7 @@ int StringToSentence(char *line)
             i++;
             while(isspace(line[i]))
                 i++; /* Added by Tim Andersen.  just in case someone puts space(s)
-                                         between the ! and the beginning of the predicate name */
+                        between the ! and the beginning of the predicate name */
         }
         /* get predicate name */
         j = i;
@@ -477,30 +491,30 @@ int StringToSentence(char *line)
             while(isspace(line[i]))
                 i++;
             j = i;
-         /* while(line[j] != ',' && line[j] != ')' && line[j] != '\0') j++; commented out by Tim Andersen */
-         /* The following line added by Tim Andersen to insure
-            that a parameter name only includes text characters */
+            /* while(line[j] != ',' && line[j] != ')' && line[j] != '\0') j++; commented out by Tim Andersen */
+            /* The following line added by Tim Andersen to insure
+               that a parameter name only includes text characters */
             while(((line[j] >= 'a') && (line[j] <= 'z')) || ((line[j]>='A') && (line[j]<='Z')))
                 j++;
             switch(line[j])
             {
-                case ' ':       /* added by Tim Andersen to allow spaces here */
-                case ')':
-                case ',': strncpy(param[snum][p],&line[i],j-i); p++; break;
-                break;
-                default:
-                    return 0;
+            case ' ':       /* added by Tim Andersen to allow spaces here */
+            case ')':
+            case ',': strncpy(param[snum][p],&line[i],j-i); p++; break;
+                      break;
+            default:
+                      return 0;
             }
             while(isspace(line[j]))
                 j++;
             switch(line[j])
             {
-                case ')':
-                    done = 1;
-                case ',':
-                    break;
-                default:
-                    return 0;
+            case ')':
+                done = 1;
+            case ',':
+                break;
+            default:
+                return 0;
             }
         }
         i = j+1;
@@ -514,19 +528,20 @@ int StringToSentence(char *line)
 /* Attempt resolution of the sentences. */
 void tryResolution(int sent1, int sent2)
 {
-  printf("tryResolution\n");
-  Assignment theta[MAXPARAM];
-  int p1, p2;
-  for(p1=0; p1<sentlist[sent1].num_pred; p1++){
-      for(p2=0; p2<sentlist[sent2].num_pred; p2++){
-	  int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
-	  if(numAssign >= 0){
-              printf("Adding sentence\n");
-	      AddSentenceFromResolution(sent1, sent2, p1, p2, theta, numAssign);
-	  }
-      }
-  }
-  return;
+    printf("tryResolution\n");
+    Assignment theta[MAXPARAM];
+    int p1, p2;
+    for(p1=0; p1<sentlist[sent1].num_pred; p1++){
+        for(p2=0; p2<sentlist[sent2].num_pred; p2++){
+            int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
+	    fprintf(stderr, "numAssign = %d\n", numAssign);
+            if(numAssign >= 0){
+                printf("Adding sentence\n");
+                AddSentenceFromResolution(sent1, sent2, p1, p2, theta, numAssign);
+            }
+        }
+    }
+    return;
 }
 
 /* Unify two predicates */
@@ -536,10 +551,12 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
     int numAssign = 0;
     //make sure predicates are not in the same "state" of negation
     if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2]){
+	fprintf(stderr, "Negation was the same\n");
         return -1;
     }
     //make sure the predicates aren't the same
     if (sentlist[sent1].pred[p1] !=  sentlist[sent2].pred[p2]){
+	fprintf(stderr, "Predicates did not match\n");
         return -1;
     }
 
@@ -552,28 +569,32 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 
     for(param=0; param<predlist[sentlist[sent1].pred[p1]].numparam; param++){
         int i;
-	//Need to walk assignment list and make them.
-	for(i=0;i<numAssign;i++){
-	    if(!memcmp(&(param1[param]), theta[i].var, sizeof(Parameter))){
-	        param1[param] = *(theta[i].val);
-	    }
-	    if(!memcmp(&(param2[param]), theta[i].var, sizeof(Parameter))){
-	        param2[param] = *(theta[i].val);
-	    }
-	}
+        //Need to walk assignment list and make them.
+        for(i=0;i<numAssign;i++){
+            if(!memcmp(&(param1[param]), theta[i].var, sizeof(Parameter))){
+                param1[param] = *(theta[i].val);
+            }
+            if(!memcmp(&(param2[param]), theta[i].var, sizeof(Parameter))){
+                param2[param] = *(theta[i].val);
+            }
+        }
 
-	if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
-	    if(variable(param1[param])){
-	        theta[numAssign].var = &(sentlist[sent1].param[p1][param]);
-		theta[numAssign++].val = &(sentlist[sent2].param[p2][param]);
+        if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
+            if(variable(param1[param])){
+                theta[numAssign].var = &(sentlist[sent1].param[p1][param]);
+                theta[numAssign++].val = &(sentlist[sent2].param[p2][param]);
+            }
+            else if(variable(sentlist[sent1].param[p1][param])) {
+                theta[numAssign].val = &(sentlist[sent1].param[p1][param]);
+                theta[numAssign++].var = &(sentlist[sent2].param[p2][param]);
+            }
+            else {
+		    fprintf(stderr, "No variable\n");
+		    return -1;
 	    }
-	    else if(variable(sentlist[sent1].param[p1][param])) {
-	        theta[numAssign].val = &(sentlist[sent1].param[p1][param]);
-		theta[numAssign++].var = &(sentlist[sent2].param[p2][param]);
-	    }
-	    else return -1;
-	}
+        }
     }
+    fprintf(stderr, "UnifyPred was successful\n");
     return numAssign;
 }
 
@@ -624,17 +645,17 @@ int main(int argc, char *argv[])
         while(choice[0] != 'a' && choice[0] != 'c' && choice[0] != 'l' &&
               choice[0] != 'p' && choice[0] != 's' && choice[0] != 'q');
         switch(choice[0]) {
-            case 'a':
-                AddKBSentence();
-                break;
-            case 'c':
-                InitializeKB();
-                break;
-            case 'l':
-                InitializeKB();
-                LoadKB();
-                break;
-            case 's':
+        case 'a':
+            AddKBSentence();
+            break;
+        case 'c':
+            InitializeKB();
+            break;
+        case 'l':
+            InitializeKB();
+            LoadKB();
+            break;
+        case 's':
             {
                 char temp[100];
                 ShowKB();
@@ -642,12 +663,12 @@ int main(int argc, char *argv[])
                 fgets(temp,100,stdin);
                 break;
             }
-            case 'p':
-                ProveQuery();
-                break;
-            case 'q':
-                done = 1;
-                break;
+        case 'p':
+            ProveQuery();
+            break;
+        case 'q':
+            done = 1;
+            break;
         }
     }
     return 0;
