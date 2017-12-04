@@ -1,0 +1,6 @@
+!some(a,b)
+!stuff(b,a)
+what(c) some(Max, Carl) some(c, Carl) . This should fail because some(c, Carl should become some(Carl, Carl) which isn't allowed.
+!what(Carl) !what(Max)
+
+!some(Max, b) what(Carl)

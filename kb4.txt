@@ -1,0 +1,6 @@
+!some(a,b)
+!stuff(b,a)
+what(c) some(Max, Carl) some(x, Carl)
+!what(Carl) !what(Max)
+
+!some(Max, b) what(Carl)
