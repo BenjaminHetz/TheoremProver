@@ -12,7 +12,7 @@ QueueObject *createQueueObject(int sent1, int sent2,
 	Object->sent2 = sent2;
 	Object->primaryPriority = primaryPriority;
 	Object->secondaryPriority = secondaryPriority;
-	fprintf(stderr, "Object looks like:\nsent1:\t%d\nsent2:\t%d\nPriority1:\t%d\nPriority2:\t%d\n", sent1, sent2, primaryPriority, secondaryPriority);
+//	fprintf(stderr, "Object looks like:\nsent1:\t%d\nsent2:\t%d\nPriority1:\t%d\nPriority2:\t%d\n", sent1, sent2, primaryPriority, secondaryPriority);
 	return Object;
 }
 
@@ -49,7 +49,7 @@ int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 		}
 		Queue->heap = temp;
 		Queue->size = Queue->size * 2;
-		fprintf(stderr, "Realloc Completed Successfully\n");
+//		fprintf(stderr, "Realloc Completed Successfully\n");
 	}
 	QueueObject *ObjectToAdd = createQueueObject(sent1, sent2,
 						     primaryPriority,
@@ -58,8 +58,8 @@ int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 	int parent;
 	for (;index != 0; index = parent){
 		parent = (index - 1) / 2;
-		fprintf(stderr, "Printing  parent of %d: %d\n", index, parent);
-		fprintf(stderr, "%d\n",Queue->heap[parent]->primaryPriority);
+//		fprintf(stderr, "Printing  parent of %d: %d\n", index, parent);
+//		fprintf(stderr, "%d\n",Queue->heap[parent]->primaryPriority);
 		if (Queue->heap[parent]->primaryPriority < primaryPriority){
 			break;
 		} else if (Queue->heap[parent]->primaryPriority == primaryPriority){
