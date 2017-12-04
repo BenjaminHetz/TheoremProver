@@ -19,6 +19,7 @@ int sentptr;
 Sentence sentlist[MAXSENT];
 Predicate predlist[MAXPRED];
 int nextvar;
+char *filename;
 
 
 /* FUNCTIONS */
@@ -264,6 +265,9 @@ void Resolve(void)
         }
     }
     ResolveRandom();
+    //Reset KB
+    InitializeKB();
+    ReadKB(filename);
     ResolveHeuristic();
     printf("Heuristic vs Random ratios:  hSteps/rSteps = %lg, hTime/rTime = %lg\n\n",
            (double)hSteps/(double)rSteps,
@@ -314,7 +318,8 @@ void ResolveHeuristic()
 //        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
 //                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
-	free(nextPair);
+        free(nextPair);
+        hSteps++;
         if(sentlist[sentptr-1].num_pred == 0){
 //            printf("Success\n");
             break;
@@ -396,7 +401,8 @@ void ResolveRandom()
 //        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
 //                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
-	free(nextPair);
+        free(nextPair);
+        rSteps++;
         if(sentlist[sentptr-1].num_pred == 0){
 //            printf("Success\n");
             break;
@@ -682,7 +688,7 @@ int variable(Parameter param) {
 
 int main(int argc, char *argv[])
 {
-    char *filename,choice[64];
+    char choice[64];
     int done;
 
     srand((unsigned int) time(0));
