@@ -290,16 +290,18 @@ void ResolveHeuristic()
         QueueObject *nextPair = pullFromQueue(ordered);
         fprintf(stderr, "next pair sent 1: %d\nnext pair sent 2: %d\n",
                          nextPair->sent1, nextPair->sent2);
-        tryResolution(nextPair->sent1, nextPair->sent2);
+        int new = tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
         }
         int pos;
-	fprintf(stderr, "****ENTER THE FOR LOOP****\n");
-        for(pos=0; pos<sentptr-1; pos++){
-            int primPriority = getPriority(pos, sentptr-1);
-            int secPriority = sentlist[pos].num_pred;
-            addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
+        fprintf(stderr, "****ENTER THE FOR LOOP****\n");
+        if(new){
+            for(pos=0; pos<sentptr-1; pos++){
+                int primPriority = getPriority(pos, sentptr-1);
+                int secPriority = sentlist[pos].num_pred;
+                addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
+            }
         }
 	fprintf(stderr, "****EXIT THE FOR LOOP****\n");
     }
