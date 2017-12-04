@@ -286,8 +286,10 @@ void ResolveHeuristic()
 
     //Loop until done.
     while(1){
+        fprintf(stderr, "Getting next pair");
         QueueObject *nextPair = pullFromQueue(ordered);
-	fprintf(stderr, "Trying resolution\n");
+        fprintf(stderr, "next pair sent 1: %d\nnext pair sent 2: %d\n",
+                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
@@ -345,17 +347,22 @@ void ResolveRandom()
 
     //Loop until done.
     while(1){
+        fprintf(stderr, "Getting next pair\n");
         QueueObject *nextPair = pullFromQueue(ordered);
-        tryResolution(nextPair->sent1, nextPair->sent2);
+        fprintf(stderr, "next pair sent 1: %d\nnext pair sent 2: %d\n",
+                         nextPair->sent1, nextPair->sent2);
+        int new = tryResolution(nextPair->sent1, nextPair->sent2);
         if(sentlist[sentptr-1].num_pred == 0){
             break;
         }
         int pos;
-	fprintf(stderr, "****ENTER THE BROKEN FOR LOOP****\n");
-        for(pos=0; pos<sentptr-1; pos++){
-            int primPriority = rand() % MAXPRED;
-            int secPriority = rand() % MAXPRED;
-            addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
+        fprintf(stderr, "****ENTER THE BROKEN FOR LOOP****\n");
+        if(new){
+            for(pos=0; pos<sentptr-1; pos++){
+                int primPriority = rand() % MAXPRED;
+                int secPriority = rand() % MAXPRED;
+                addToQueue(ordered, pos, sentptr - 1, primPriority, secPriority);
+            }
         }
 	fprintf(stderr, "****EXIT THE BROKEN FOR LOOP****\n");
     }
@@ -526,22 +533,26 @@ int StringToSentence(char *line)
 }
 
 /* Attempt resolution of the sentences. */
-void tryResolution(int sent1, int sent2)
+int tryResolution(int sent1, int sent2)
 {
     printf("tryResolution\n");
+    int curptr = sentptr;
     Assignment theta[MAXPARAM];
     int p1, p2;
     for(p1=0; p1<sentlist[sent1].num_pred; p1++){
         for(p2=0; p2<sentlist[sent2].num_pred; p2++){
             int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
-	    fprintf(stderr, "numAssign = %d\n", numAssign);
+            fprintf(stderr, "numAssign = %d\n", numAssign);
             if(numAssign >= 0){
                 printf("Adding sentence\n");
                 AddSentenceFromResolution(sent1, sent2, p1, p2, theta, numAssign);
             }
         }
     }
-    return;
+    if(curptr == sentptr){
+        return 0;
+    }
+    return 1;
 }
 
 /* Unify two predicates */
