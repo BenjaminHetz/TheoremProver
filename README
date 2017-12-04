@@ -36,3 +36,18 @@ Heuristic Resolve Notes:
  set, another loop is done from 1 past the last position of the loop to the position to add, setting each value 
  to the value before it. Finally, we set the value at the desired position to the new value. This ends the loop 
  on the sentences. Once it has ran through each sentence (loop finishes), the ordered int pointer is returned.
+ 
+ After attempting to convert the code to java, then getting additional C code from class, as well as better 
+ understanding what should happen in the project, we changed how our Heuristics were done. We have both a primary 
+ and secondary priority used to order our PriorityQueue. The first and main priority or heuristic is essentially 
+ the amount of change a sentence would have if it was resolved with it's pair. It checks each of the first sentences 
+ predicates against each predicate from the second sentence. If a predicate from the first sentence matches from the 
+ second sentence and their negated parts are not equal, then the heuristic gets a -1. If no predicate matches with a 
+ negation, then it gets a +1. In essence, IF resolution was done on multiple predicates at once, then this value would 
+ tell you how much the length of the second sentence would change. The second priority is how long first sentence is. 
+ In both cases we want the minimum value. We sort the priority queue based on the smallest values from the first 
+ priorities. If they are equal, we then sort based on the smallest second priorities. This means we would get the pair 
+ that would result in the greatest reduction and whose first sentence is the shortest. While this would be a great 
+ heuristic if multiple predicate resolution was implemented, we ran out of time and couldn't do that. Because of that 
+ the heuristic is both good and bad since one 1 predicate can be resolved at a time. In general, if random is near 
+ perfect it is better then our heuristic and about the same or worse in all other cases based on both steps and time.
