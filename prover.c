@@ -597,12 +597,15 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
             }
         }
 
+        fprintf(stderr, "param1 = %d\nparam2 = %d\n", param1[param], param2[param]);
         if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
+            fprintf(stderr, "param1 variable :%d\nparam2 variable %d\n", variable(param1[param]), variable(param2[param]));
             if(variable(param1[param])){
                 theta[numAssign].var = &(sentlist[sent1].param[p1][param]);
                 theta[numAssign++].val = &(sentlist[sent2].param[p2][param]);
             }
-            else if(variable(sentlist[sent1].param[p1][param])) {
+            // else if(variable(sentlist[sent1].param[p1][param])){
+            else if(variable(param2[param])) {
                 theta[numAssign].val = &(sentlist[sent1].param[p1][param]);
                 theta[numAssign++].var = &(sentlist[sent2].param[p2][param]);
             }
