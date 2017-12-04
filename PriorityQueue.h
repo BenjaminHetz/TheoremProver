@@ -22,6 +22,7 @@ QueueObject *createQueueObject(int sent1, int sent2,
 
 PriorityQueue *createPriorityQueue();
 
+void freeQueue(PriorityQueue *Queue);
 int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 		int primaryPriority, int secondaryPriority);
 

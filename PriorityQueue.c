@@ -18,7 +18,7 @@ QueueObject *createQueueObject(int sent1, int sent2,
 
 PriorityQueue *createPriorityQueue()
 {
-	int queueSizeInBytes = 512 * sizeof(QueueObject *);
+	int queueSizeInBytes = 4096 * sizeof(QueueObject *);
 	PriorityQueue *Queue = (PriorityQueue*) calloc(1, sizeof(PriorityQueue));
 
 	Queue->heap = (QueueObject **)calloc(512, sizeof(QueueObject *));
@@ -28,19 +28,28 @@ PriorityQueue *createPriorityQueue()
 
 	return Queue;
 }
-
+void freeQueue(PriorityQueue *Queue)
+{
+	while (Queue->count > 0){
+		QueueObject *remove = pullFromQueue(Queue);
+		free(remove);
+	}
+	free(Queue->heap);
+	free(Queue);
+}
 int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 	       int primaryPriority, int secondaryPriority)
 {
 	if (Queue->count >= Queue->size){
-		fprintf(stderr, "Count exceeded size, realloc needed\n");
+//		fprintf(stderr, "Count exceeded size, realloc needed\n");
 		QueueObject **temp = realloc(Queue->heap, (Queue->size) * 2);
 		if (temp == NULL){
-			fprintf(stderr, "Realloc failed\n");
+//			fprintf(stderr, "Realloc failed\n");
 			exit(-1);
 		}
 		Queue->heap = temp;
 		Queue->size = Queue->size * 2;
+		fprintf(stderr, "Realloc Completed Successfully\n");
 	}
 	QueueObject *ObjectToAdd = createQueueObject(sent1, sent2,
 						     primaryPriority,
@@ -49,8 +58,8 @@ int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 	int parent;
 	for (;index != 0; index = parent){
 		parent = (index - 1) / 2;
-//		fprintf(stderr, "Printing heap parent: %d\n", parent);
-//		fprintf(stderr, "%d\n",Queue->heap[parent]->primaryPriority);
+		fprintf(stderr, "Printing  parent of %d: %d\n", index, parent);
+		fprintf(stderr, "%d\n",Queue->heap[parent]->primaryPriority);
 		if (Queue->heap[parent]->primaryPriority < primaryPriority){
 			break;
 		} else if (Queue->heap[parent]->primaryPriority == primaryPriority){

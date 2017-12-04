@@ -99,10 +99,10 @@ void AddSentenceFromResolution(int s1, int s2, int p1, int p2, Assignment *theta
     memset(&(sentlist[sentptr]), 0, sizeof(Sentence));
     addPredicateWithSkip(sentptr, s1, p1);
     addPredicateWithSkip(sentptr, s2, p2);
-    printf("Seg Fault time?\n");
+//    printf("Seg Fault time?\n");
     performSubstitutions(sentptr, theta, numAssign);
     StandardizeApartVariables(sentptr);
-    printf("Guess not\n");
+//    printf("Guess not\n");
     sentptr++;
 }
 
@@ -165,7 +165,7 @@ void performSubstitutions(int s, Assignment *theta, int numAssign)
     int x,y,z;
 
     printAssignments(theta, numAssign);
-    printf("Performing substitutions %d\n", numAssign);
+//    printf("Performing substitutions %d\n", numAssign);
     //printf("Enter x for loop with %d preds\n", sentlist[s].num_pred);
     for(x=0;x<sentlist[s].num_pred; x++){
         //printf("predicate %d\n", x);
@@ -176,7 +176,7 @@ void performSubstitutions(int s, Assignment *theta, int numAssign)
             for(z=0; z<numAssign; z++){
                 //printf("Check if loop\n");
                 if(sentlist[s].param[x][y].var == theta[z].var->var){
-                    printf("Making assignment of %s", variable(*(theta[z].val))?"v":theta[z].val->con);
+//                    printf("Making assignment of %s", variable(*(theta[z].val))?"v":theta[z].val->con);
                     sentlist[s].param[x][y] = *(theta[z].val);
                 }
             }
@@ -237,6 +237,7 @@ int ReadKB(char *filename)
             return 0;
         }
     }
+    fclose(kbfile);
     return 1;
 }
 
@@ -290,40 +291,41 @@ void ResolveHeuristic()
     //Order by some heuristic.
     PriorityQueue *ordered = createPriorityQueue();
     int pos;
-	printf("****ENTER THE FOR LOOP****\n");
+//printf("****ENTER THE FOR LOOP****\n");
     for(pos=0; pos<sentToResolve; pos++){
         int primPriority = getPriority(pos, sentToResolve);
         int secPriority = sentlist[pos].num_pred;
         addToQueue(ordered, pos, sentToResolve, primPriority, secPriority);
     }
-	printf("****EXIT THE FOR LOOP****\n");
+//	printf("****EXIT THE FOR LOOP****\n");
 
     //Loop until done.
     int curptr;
     int done = 0;
     while(!done){
         curptr = sentptr;
-        printf("Getting next pair");
+//        printf("Getting next pair");
         QueueObject *nextPair = pullFromQueue(ordered);
         if (!nextPair)
         {
-            printf("Queue Empty: Can not resolve\n");
+//            printf("Queue Empty: Can not resolve\n");
             break;
         }
-        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
-                         nextPair->sent1, nextPair->sent2);
+//        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
+//                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
+	free(nextPair);
         if(sentlist[sentptr-1].num_pred == 0){
-            printf("Success\n");
+//            printf("Success\n");
             break;
         }
         int pos;
         int x;
-        printf("****ENTER THE FOR LOOP****\n");
+//        printf("****ENTER THE FOR LOOP****\n");
         if(curptr != sentptr){
             for(x=curptr; x<sentptr; x++){
                 if(sentlist[x].num_pred > 3 * MaxStartPreds){
-                    printf("Infinite resolutions. Can not resolve\n");
+//                    printf("Infinite resolutions. Can not resolve\n");
                     done = 1;
                     break;
                 }
@@ -335,7 +337,7 @@ void ResolveHeuristic()
             }
             curptr = sentptr;
         }
-	printf("****EXIT THE FOR LOOP****\n");
+//	printf("****EXIT THE FOR LOOP****\n");
     }
 
     //Get end time.
@@ -343,7 +345,7 @@ void ResolveHeuristic()
     int seconds = (end.tv_sec - start.tv_sec);
     double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     hTime=seconds + useconds;
-
+    freeQueue(ordered);
     //Print results.
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
 }
@@ -371,40 +373,41 @@ void ResolveRandom()
     PriorityQueue *ordered = createPriorityQueue();
     int pos;
     srand(time(NULL));
-	printf("****ENTER THE FOR LOOP****\n");
+//	printf("****ENTER THE FOR LOOP****\n");
     for(pos=0; pos<sentToResolve; pos++){
         int primPriority = rand() % MAXPRED;
         int secPriority = rand() % MAXPRED;
         addToQueue(ordered, pos, sentToResolve, primPriority, secPriority);
     }
-	printf("****EXIT THE FOR LOOP****\n");
+//	printf("****EXIT THE FOR LOOP****\n");
 
     //Loop until done.
     int curptr;
     int done = 0;
     while(!done){
         curptr = sentptr;
-        printf("Getting next pair\n");
+//        printf("Getting next pair\n");
         QueueObject *nextPair = pullFromQueue(ordered);
         if (!nextPair)
         {
-            printf("Queue empty. Can not resolve\n");
+//            printf("Queue empty. Can not resolve\n");
             break;
         }
-        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
-                         nextPair->sent1, nextPair->sent2);
+//        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
+//                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
+	free(nextPair);
         if(sentlist[sentptr-1].num_pred == 0){
-            printf("Success\n");
+//            printf("Success\n");
             break;
         }
         int pos;
         int x;
-        printf("****ENTER THE BROKEN FOR LOOP****\n");
+//        printf("****ENTER THE BROKEN FOR LOOP****\n");
         if(curptr != sentptr){
             for(x=curptr; x<sentptr; x++){
                 if(sentlist[x].num_pred > 3 * MaxStartPreds){
-                    printf("Infinite resolutions. Can not resolve\n");
+//                    printf("Infinite resolutions. Can not resolve\n");
                     done = 1;
                     break;
                 }
@@ -415,10 +418,11 @@ void ResolveRandom()
                 }
             }
         }
-	printf("****EXIT THE BROKEN FOR LOOP****\n");
+//	printf("****EXIT THE BROKEN FOR LOOP****\n");
     }
 
     gettimeofday(&end, NULL); //Time at end of RandomResolve approach.
+    freeQueue(ordered);
     int seconds = (end.tv_sec - start.tv_sec);
     double useconds = (end.tv_usec - start.tv_usec)/(1000000000.0);
     rTime= seconds + useconds;
@@ -586,16 +590,16 @@ int StringToSentence(char *line)
 /* Attempt resolution of the sentences. */
 void tryResolution(int sent1, int sent2)
 {
-    printf("tryResolution\n");
+//    printf("tryResolution\n");
     int curptr = sentptr;
     Assignment theta[MAXPARAM];
     int p1, p2;
     for(p1=0; p1<sentlist[sent1].num_pred; p1++){
         for(p2=0; p2<sentlist[sent2].num_pred; p2++){
             int numAssign = UnifyPred(sent1, p1, sent2, p2, theta);
-            printf("numAssign = %d\n", numAssign);
+//            printf("numAssign = %d\n", numAssign);
             if(numAssign >= 0){
-                printf("Adding sentence\n");
+//                printf("Adding sentence\n");
                 AddSentenceFromResolution(sent1, sent2, p1, p2, theta, numAssign);
             }
         }
@@ -608,15 +612,15 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 {
     int param;
     int numAssign = 0;
-    printf("pred1 = %d\npred2 = %d\n", sentlist[sent1].pred[p1], sentlist[sent2].pred[p2]);
+//    printf("pred1 = %d\npred2 = %d\n", sentlist[sent1].pred[p1], sentlist[sent2].pred[p2]);
     //make sure predicates are not in the same "state" of negation
     if (sentlist[sent1].neg[p1] == sentlist[sent2].neg[p2]){
-	printf("Negation was the same\n");
+//	printf("Negation was the same\n");
         return -1;
     }
     //make sure the predicates aren't the same
     if (sentlist[sent1].pred[p1] !=  sentlist[sent2].pred[p2]){
-	printf("Predicates did not match\n");
+//	printf("Predicates did not match\n");
         return -1;
     }
 
@@ -639,9 +643,9 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
             }
         }
 
-        printf("param1 = %d\nparam2 = %d\n", param1[param], param2[param]);
+//        printf("param1 = %d\nparam2 = %d\n", param1[param], param2[param]);
         if(memcmp(&(param1[param]), &(param2[param]), sizeof(Parameter))){
-            printf("param1 variable :%d\nparam2 variable %d\n", variable(param1[param]), variable(param2[param]));
+//            printf("param1 variable :%d\nparam2 variable %d\n", variable(param1[param]), variable(param2[param]));
             if(variable(param1[param])){
 		if (numAssign == -1)
 			numAssign = 0;
@@ -659,12 +663,12 @@ int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *theta)
 		numAssign++;
             }
             else {
-		    printf("No variable\n");
+//		    printf("No variable\n");
 		    continue;
 	    }
         }
     }
-    printf("UnifyPred was successful\n");
+//    printf("UnifyPred was successful\n");
     return numAssign;
 }
 
