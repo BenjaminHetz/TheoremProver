@@ -306,6 +306,7 @@ void ResolveHeuristic()
     //Loop until done.
     int curptr;
     int done = 0;
+    int success = 1;
     while(!done){
         curptr = sentptr;
 //        printf("Getting next pair");
@@ -313,6 +314,7 @@ void ResolveHeuristic()
         if (!nextPair)
         {
 //            printf("Queue Empty: Can not resolve\n");
+            success = 0;
             break;
         }
 //        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
@@ -330,8 +332,9 @@ void ResolveHeuristic()
         if(curptr != sentptr){
             for(x=curptr; x<sentptr; x++){
                 if(sentlist[x].num_pred > 3 * MaxStartPreds){
-//                    printf("Infinite resolutions. Can not resolve\n");
+                    //printf("Infinite resolutions. Can not resolve\n");
                     done = 1;
+                    success = 0;
                     break;
                 }
                 for(pos=0; pos<x; pos++){
@@ -353,6 +356,12 @@ void ResolveHeuristic()
     freeQueue(ordered);
     //Print results.
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
+    
+    if(success){
+        //TODO print proof.
+    } else {
+        printf("A proof could not be made\n");
+    }
 }
 
 /* You must write this function */
@@ -389,6 +398,7 @@ void ResolveRandom()
     //Loop until done.
     int curptr;
     int done = 0;
+    int success = 1;
     while(!done){
         curptr = sentptr;
 //        printf("Getting next pair\n");
@@ -396,6 +406,7 @@ void ResolveRandom()
         if (!nextPair)
         {
 //            printf("Queue empty. Can not resolve\n");
+            success = 0;
             break;
         }
 //        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
@@ -415,6 +426,7 @@ void ResolveRandom()
                 if(sentlist[x].num_pred > 3 * MaxStartPreds){
 //                    printf("Infinite resolutions. Can not resolve\n");
                     done = 1;
+                    success = 0;
                     break;
                 }
                 for(pos=0; pos<x; pos++){
@@ -435,6 +447,12 @@ void ResolveRandom()
 
     //Print result.
     printf("RandomResolve: #steps = %i, time = %lg\n\n",rSteps, rTime);
+    
+    if(success){
+        //TODO print proof
+    } else {
+        printf("A proof could not be made\n");
+    }
 }
 
 /* Print the current KB to the screen */
