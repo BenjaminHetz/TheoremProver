@@ -128,7 +128,7 @@ void StandardizeApartVariables(int s);
 int StringToSentence(char *line);
 
 /* TODO */
-int tryResolution(int sent1, int sent2);
+void tryResolution(int sent1, int sent2);
 
 /* TODO Explanation Comment */
 int UnifyPred(int sent1, int p1, int sent2, int p2, Assignment *Theta);
