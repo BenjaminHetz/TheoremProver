@@ -349,6 +349,11 @@ void ResolveRandom()
     while(1){
         fprintf(stderr, "Getting next pair\n");
         QueueObject *nextPair = pullFromQueue(ordered);
+	if (!nextPair)
+	{
+		fprintf(stderr, "Could not resolve\n");
+		break;
+	}
         fprintf(stderr, "next pair sent 1: %d\nnext pair sent 2: %d\n",
                          nextPair->sent1, nextPair->sent2);
         int new = tryResolution(nextPair->sent1, nextPair->sent2);

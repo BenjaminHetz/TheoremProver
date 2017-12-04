@@ -65,6 +65,9 @@ int addToQueue(PriorityQueue *Queue, int sent1, int sent2,
 
 QueueObject *pullFromQueue(PriorityQueue *Queue)
 {
+	if (Queue->count == 0) {
+		return NULL;
+	}
 	QueueObject *ObjectToReturn = Queue->heap[0];
 	Queue->count--;
 	QueueObject *temp = Queue->heap[Queue->count];
