@@ -280,6 +280,8 @@ void ResolveHeuristic()
     struct timeval start, end;
     hTime=0.0;
     hSteps=0;
+    QueueObject **resolutions = malloc(sizeof(QueueObject *) * 4096);
+    int resSize = 0;
     //Time at start of RandomResolve approach.
     gettimeofday(&start, NULL);
 
@@ -320,14 +322,20 @@ void ResolveHeuristic()
 //        printf("next pair sent 1: %d\nnext pair sent 2: %d\n",
 //                         nextPair->sent1, nextPair->sent2);
         tryResolution(nextPair->sent1, nextPair->sent2);
-        free(nextPair);
         hSteps++;
         if(sentlist[sentptr-1].num_pred == 0){
 //            printf("Success\n");
+            nextPair->primaryPriority = -1;
+            resolutions[resSize++] = nextPair;
             break;
         }
-        int pos;
         int x;
+        for(x=curptr; x<sentptr; x++){
+            nextPair->primaryPriority = x;
+            resolutions[resSize++] = nextPair;
+        }
+        
+        int pos;
 //        printf("****ENTER THE FOR LOOP****\n");
         if(curptr != sentptr){
             for(x=curptr; x<sentptr; x++){
@@ -358,7 +366,27 @@ void ResolveHeuristic()
     printf("HeuristicResolve: #steps = %i, time = %lg\n\n",hSteps, hTime);
     
     if(success){
-        //TODO print proof.
+        printf("Here is the reverse proof\n");
+        //printf("resSize is %d\n", resSize);
+        int done = 0;
+        int i;
+        QueueObject *last = resolutions[--resSize];
+        while(!done){
+            for(i=0; i<resSize; i++){
+                if(resolutions[i]->primaryPriority == last->sent2){
+                    printf("Sentence%d\n", last->primaryPriority);
+                    printf("Sentence%d, Sentence%d\n", last->sent2, last->sent1);
+                    last = resolutions[i];
+                    done = 1;
+                    break;
+                }
+            }
+            if(done){
+                done = 0;
+            } else {
+                break;
+            }
+        }
     } else {
         printf("A proof could not be made\n");
     }
